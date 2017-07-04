@@ -28,7 +28,7 @@ if os.getcwd() == cfg.laptop_dir:   #Using Laptop
 
 elif os.getcwd() == cfg.desktop_dir:    #Using Desktop
     logging.debug('Desktop PC detected')
-    localFile = open()
+    localFile = open(cfg.desktop_localfile)
     exampleSoup = bs4.BeautifulSoup(localFile, "html.parser")  # turns the HTML into a beautiful soup object
     exampleNewHTMLFile = open(cfg.desktop_ex_html_file)
     exampleNewSoup = bs4.BeautifulSoup(exampleNewHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
