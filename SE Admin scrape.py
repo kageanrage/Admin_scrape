@@ -36,7 +36,7 @@ elif os.getcwd() == cfg.desktop_dir:    #Using Desktop
     exampleOldSoup = bs4.BeautifulSoup(exampleOldHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
 
 def download_soup():
-    chrome_path = r'C:\Program Files\Python35\chromedriver.exe'
+    chrome_path = r'C:\Program Files\Python36\chromedriver.exe'
     driver = webdriver.Chrome(chrome_path)
     driver.get(cfg.survey_admin_URL) # load survey admin page
     emailElem = driver.find_element_by_id('UserName') #enter username & password and submit
@@ -84,8 +84,12 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
     completes = int(valueList[8])
     QFs = int(valueList[10])
     SOs = int(valueList[9])
-    incidence = (completes / (completes + SOs))
-    QFIncidence = (completes / (completes + SOs + QFs))
+    if completes == 0 | SOs == 0 | QFs == 0:
+        incidence = 0
+        QFIncidence = 0
+    else:
+        incidence = (completes / (completes + SOs))
+        QFIncidence = (completes / (completes + SOs + QFs))
     newList.append(incidence)
     newList.append(QFIncidence)
     #print('newList is:',newList)
@@ -246,13 +250,13 @@ def email_body_content(listOfNewbies):
 
 # First we set up the original variables, so this happens outside of the while loop as a one-off
 
-#newSoup = download_soup()     #toggle off for test mode
-moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
+newSoup = download_soup()     #toggle off for test mode
+moOriginal = process_soup(newSoup)   #parameter: newSoup or exampleOldSoup for testing
 #print('exampleSoup looks like this:\n\n',exampleSoup)
 original10 = create_topList(moOriginal, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
-    #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(exampleNewSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
+    newSoup = download_soup()                # download latest HTML; toggle off for test mode
+    mo2 = process_soup(newSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
 #    print('\n\nmo2:\n\n')
     latest10 = create_topList(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
@@ -261,12 +265,12 @@ while 1:     #this is the loop that endlessly repeats
     print('newbies:\n',newbies)
     if len(newbies) > 0:
         send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',email_body_content(newbies))
-    #original10 = latest10    #overwrite original10 with the latest10
+    original10 = latest10    #overwrite original10 with the latest10
     print('End of program, waiting 60 sec')
-    time.sleep(1000)     #1000 for test mode
+    time.sleep(60)     #1000 for test mode
 
 
-send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email, 'test subject', 'test body')
+# send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email, 'test subject', 'test body')
 
 
 #TO DO: compare original10 and latest10 and flag any 'zero to 1' completes movement(new function)
