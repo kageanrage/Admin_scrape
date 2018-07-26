@@ -36,7 +36,7 @@ elif os.getcwd() == cfg.desktop_dir:    #Using Desktop
     exampleOldSoup = bs4.BeautifulSoup(exampleOldHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
 
 def download_soup():
-    chrome_path = r'C:\Program Files\Python36\chromedriver.exe'
+    chrome_path = r'C:\Program Files\Python37\chromedriver.exe'
     driver = webdriver.Chrome(chrome_path)
     driver.get(cfg.survey_admin_URL) # load survey admin page
     emailElem = driver.find_element_by_id('UserName') #enter username & password and submit
