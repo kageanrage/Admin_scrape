@@ -47,20 +47,20 @@ def download_soup():
     time.sleep(5)   # wait 5 seconds to log in
     content = driver.page_source
     soup = bs4.BeautifulSoup(content, "html.parser")
-    #print('Newly downloaded soup looks like this:\n\n',soup)
+    # logging.debug('Newly downloaded soup looks like this:\n\n', soup)
     #soupFile = open(htmlFileName, "w")
     #soupFile.write(str(soup))
     #soupFile.close()
-    return(soup)
+    return soup
 
 def process_soup(soup):
     logging.debug('Starting table isolation')
     tableOnly = soup.select(
         'table')  # isolates the table (which is the only bit I need) from the HTML. Type is list, was expecting BS4 object
-    #print('tableOnly looks like this:\n\n\n',tableOnly)
+    #logging.debug('tableOnly looks like this:\n\n\n',tableOnly)
     logging.debug('Converting bs4 object into string')
     tableString = str(tableOnly)  # converts the bs4 object to a string
-    #print('tableString looks like this:\n\n\n',tableString)
+    #logging.debug('tableString looks like this:\n\n\n',tableString)
     # May not be able to isolate further within BS4 so switching to regex to parse.
     # TO DO: create a regex to identify each project on the Admin page
     logging.debug('Defining RegEx')
@@ -72,7 +72,7 @@ def process_soup(soup):
     # TO DO: Return all examples of regex findall search
     logging.debug('Conducting regex findall search')
     mo = projectsRegex.findall(tableString)
-    #print('newly created mo looks like this:\n\n',mo)
+    #logging.debug('newly created mo looks like this:\n\n',mo)
     return mo
 
 def listCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
@@ -92,11 +92,11 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
         QFIncidence = (completes / (completes + SOs + QFs))
     newList.append(incidence)
     newList.append(QFIncidence)
-    #print('newList is:',newList)
-    #print('valueList is',valueList[0:12])
-    #print('{} C / {} C + {} SOs + {} QFs = {} IR.'.format(completes,completes,SOs,QFs,incidence))
-    #print(newDict)
-    return(newList)
+    #logging.debug('newList is:',newList)
+    #logging.debug('valueList is',valueList[0:12])
+    #logging.debug('{} C / {} C + {} SOs + {} QFs = {} IR.'.format(completes,completes,SOs,QFs,incidence))
+    #logging.debug(newDict)
+    return newList
 
 def create_masterList(mo):     #creates a list of all projects in given MO, first row will be headings
     #global masterList
@@ -104,7 +104,7 @@ def create_masterList(mo):     #creates a list of all projects in given MO, firs
                    'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']]
     for i in range(0, len(mo) - 1):
         mList.append(listCreator(mo[i]))
-    return(mList)
+    return mList
 
 def create_topList(mo, num):    #num = how long you want the list to be
     tList = []
@@ -112,7 +112,7 @@ def create_topList(mo, num):    #num = how long you want the list to be
     #                'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']]
     for i in range(0, num):
         tList.append(listCreator(mo[i]))
-    return(tList)
+    return tList
 
 def new_project_search(newList,oldList):
 
@@ -135,6 +135,7 @@ def new_project_search(newList,oldList):
                     pass
 
     #print('Unmatched are as follows: ',unmatched)
+    print('List of matched items: ',matches)
     return(unmatched)
 
 def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
@@ -250,13 +251,13 @@ def email_body_content(listOfNewbies):
 
 # First we set up the original variables, so this happens outside of the while loop as a one-off
 
-newSoup = download_soup()     #toggle off for test mode
-moOriginal = process_soup(newSoup)   #parameter: newSoup or exampleOldSoup for testing
-#print('exampleSoup looks like this:\n\n',exampleSoup)
+# newSoup = download_soup()     #toggle off for test mode
+moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
+#logging.debug('exampleSoup looks like this:\n\n',exampleSoup)
 original10 = create_topList(moOriginal, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
-    newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(newSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
+    # newSoup = download_soup()                # download latest HTML; toggle off for test mode
+    mo2 = process_soup(exampleNewSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
 #    print('\n\nmo2:\n\n')
     latest10 = create_topList(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
@@ -267,7 +268,7 @@ while 1:     #this is the loop that endlessly repeats
         send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',email_body_content(newbies))
     original10 = latest10    #overwrite original10 with the latest10
     print('End of program, waiting 60 sec')
-    time.sleep(60)     #1000 for test mode
+    time.sleep(1000)     #1000 for test mode
 
 
 # send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email, 'test subject', 'test body')
@@ -284,7 +285,6 @@ while 1:     #this is the loop that endlessly repeats
 
 #This is a test sequence, to compare lists generated from old and new soup
 #It works beautifully when I'm looking for 10 and 20 list length, but for 30 I get an error. Not sure why a project was being searched for and attempted removal twice, but added 'try and except' logic to keep program running
-#Next - get the while loop going and go into non-test mode
 
 
 # logging.debug('Example sequence')
