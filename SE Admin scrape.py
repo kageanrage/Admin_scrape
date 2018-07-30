@@ -279,9 +279,21 @@ print("the job# in the first item in original20 looks like this: ", original20[0
     # for all numerical items in that job for new20:
         # changed20 equivalent = new20 number minus original20 number
 
+changed20 = []
+print("len of new20 is ",len(new20))
+print("len of new20[0] is",len(new20[0]))
+print("len of original20 is ",len(original20))
+print("len of changed20 is ",len(changed20))
 
+for i in range(0, len(new20)):
+    for x in range(0,len(original20)):
+        if new20[i][3] == original20[x][3]:
+            for y in range(0, len(new20[i])):
+                print("i is {} and x is {} and y is {}".format(i, x, y))
+                # I can see that this won't work because i doesn't start at zero. Need to tell it to create new list item each time the if statement repeats
+                # changed20[i][y] = new20[i][y]
 
-
+print(changed20)
 
 
 
