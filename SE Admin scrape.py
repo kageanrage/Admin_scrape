@@ -72,7 +72,7 @@ def process_soup(soup):
     # TO DO: Return all examples of regex findall search
     logging.debug('Conducting regex findall search')
     mo = projectsRegex.findall(tableString)
-    #logging.debug('newly created mo looks like this:\n\n',mo)
+    #print('newly created mo looks like this:\n\n',mo)
     return mo
 
 def listCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
@@ -237,16 +237,9 @@ def email_body_content(listOfNewbies):
     return(body)
 
 
-#breakoff section to test listCreator running on the downloaded soup compared to exampleSoup
-
-# print('Here comes my breakoff section:\n')
-# newSoup = download_soup()                # download latest HTML
-# mo2 = process_soup(newSoup)   # parameter can be localFile (to test), exampleNewSoup or exampleOldSoup or exampleSoup. ISSUE: something must be wrong with mo2, it seems to be blank, leading to a listCreator error. Issue must be with process_soup function
-# print('\n\nmo2 looks like this:\n\n',mo2)
-# latest10 = create_topList(mo2, 10)
-# print('breakoff complete')
 
 
+"""
 ### This is where the levers get pulled.
 
 # First we set up the original variables, so this happens outside of the while loop as a one-off
@@ -256,9 +249,8 @@ moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSou
 #logging.debug('exampleSoup looks like this:\n\n',exampleSoup)
 original10 = create_topList(moOriginal, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
-    # newSoup = download_soup()                # download latest HTML; toggle off for test mode
+    #newSoup = download_soup()                # download latest HTML; toggle off for test mode
     mo2 = process_soup(exampleNewSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
-#    print('\n\nmo2:\n\n')
     latest10 = create_topList(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
@@ -270,8 +262,32 @@ while 1:     #this is the loop that endlessly repeats
     print('End of program, waiting 60 sec')
     time.sleep(1000)     #1000 for test mode
 
+"""
 
-# send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email, 'test subject', 'test body')
+#TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
+
+moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
+moNew = process_soup(exampleNewSoup)
+original20 = create_topList(moOriginal, 20)   #match object, desired number of projects in list
+new20 = create_topList(moNew, 20)
+print("new projects are: ", new_project_search(new20, original20))
+print("original20 looks like this: ",original20)
+print("the job# in the first item in original20 looks like this: ", original20[0][3])
+
+# for all job #s in new20, if job# appears in original20:
+    # for all non-numerical items, their equivalent in changed20 is identical to new20
+    # for all numerical items in that job for new20:
+        # changed20 equivalent = new20 number minus original20 number
+
+
+
+
+
+
+
+
+
+
 
 
 #TO DO: compare original10 and latest10 and flag any 'zero to 1' completes movement(new function)
