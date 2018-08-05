@@ -99,31 +99,7 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
     return newList
 
 
-def dictCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
-    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
-    newDict = {}
-    for i in range(0,len(headings)):
-        newDict.setdefault(headings[i], valueList[i])
-    completes = int(valueList[8])
-    QFs = int(valueList[10])
-    SOs = int(valueList[9])
-    if completes == 0 | SOs == 0 | QFs == 0:
-        incidence = 0
-        QFIncidence = 0
-    else:
-        incidence = (completes / (completes + SOs))
-        QFIncidence = (completes / (completes + SOs + QFs))
-    newDict.setdefault('incidence', incidence)
-    newDict.setdefault('QFincidence', QFIncidence)
-    return newDict
 
-
-def create_masterDict(mo):     #creates a dict of all project dicts in given MO
-    mDict = {}
-    #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
-    for i in range(0, len(mo) - 1):
-        mList.append(listCreator(mo[i]))
-    return mDict
 
 
 
@@ -268,6 +244,74 @@ def email_body_content(listOfNewbies):
     #print(body)
     return(body)
 
+def dictCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
+    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
+    newDict = {}
+    for i in range(0,len(headings)):
+        newDict.setdefault(headings[i], valueList[i])
+    completes = int(valueList[8])
+    QFs = int(valueList[10])
+    SOs = int(valueList[9])
+    if completes == 0 | SOs == 0 | QFs == 0:
+        incidence = 0
+        QFIncidence = 0
+    else:
+        try:
+            incidence = (completes / (completes + SOs))
+        except Exception as err:
+            print('an exception occured: ', err)
+            incidence = 0
+        try:
+            QFIncidence = (completes / (completes + SOs + QFs))
+        except Exception as err2:
+            print('an exception occured:',err2)
+            QFIncidence = 0
+    newDict.setdefault('incidence', incidence)
+    newDict.setdefault('QFincidence', QFIncidence)
+    return newDict
+
+
+def create_masterDict(mo):     #creates a dict of all project dicts in given MO
+    mDict = {}
+    for i in range(0,len(mo)):
+        logging.debug(f'i is {i}, adding {mo[i][3]} to mDict')
+        mDict.setdefault(mo[i][3],dictCreator(mo[i]))
+    #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
+    #for i in range(0, len(mo) - 1):
+    #    mList.append(listCreator(mo[i]))
+    return mDict
+
+
+#JULY-2018 - this is my current working area
+#TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
+#First I want to change my data structure back to dictionaries, so that new and old dictionaries can be compared (hopefully)
+# more easily
+
+#master dict creator function should take mo as argument and utilise dictcreator
+
+moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
+masterDict = create_masterDict(moOriginal)
+
+
+
+
+
+
+
+
+
+
+# moNew = process_soup(exampleNewSoup)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -298,15 +342,6 @@ while 1:     #this is the loop that endlessly repeats
 
 '''
 
-
-#TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
-
-moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
-#print(moOriginal[0])
-
-pprint.pprint(dictCreator(moOriginal[0]))
-
-# moNew = process_soup(exampleNewSoup)
 
 
 
