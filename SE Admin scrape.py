@@ -3,7 +3,7 @@ logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - 
 #logging.disable(logging.CRITICAL)     # switches off logging
 
 logging.debug('Importing modules')
-import bs4,re, openpyxl, os, sqlite3, requests, time, smtplib
+import bs4,re, openpyxl, os, sqlite3, requests, time, smtplib, pprint
 from openpyxl.styles import Font, NamedStyle
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -97,6 +97,38 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
     #logging.debug('{} C / {} C + {} SOs + {} QFs = {} IR.'.format(completes,completes,SOs,QFs,incidence))
     #logging.debug(newDict)
     return newList
+
+
+def dictCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
+    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
+    newDict = {}
+    for i in range(0,len(headings)):
+        newDict.setdefault(headings[i], valueList[i])
+    completes = int(valueList[8])
+    QFs = int(valueList[10])
+    SOs = int(valueList[9])
+    if completes == 0 | SOs == 0 | QFs == 0:
+        incidence = 0
+        QFIncidence = 0
+    else:
+        incidence = (completes / (completes + SOs))
+        QFIncidence = (completes / (completes + SOs + QFs))
+    newDict.setdefault('incidence', incidence)
+    newDict.setdefault('QFincidence', QFIncidence)
+    return newDict
+
+
+def create_masterDict(mo):     #creates a dict of all project dicts in given MO
+    mDict = {}
+    #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
+    for i in range(0, len(mo) - 1):
+        mList.append(listCreator(mo[i]))
+    return mDict
+
+
+
+
+
 
 def create_masterList(mo):     #creates a list of all projects in given MO, first row will be headings
     #global masterList
@@ -239,7 +271,7 @@ def email_body_content(listOfNewbies):
 
 
 
-"""
+'''
 ### This is where the levers get pulled.
 
 # First we set up the original variables, so this happens outside of the while loop as a one-off
@@ -262,39 +294,38 @@ while 1:     #this is the loop that endlessly repeats
     print('End of program, waiting 60 sec')
     time.sleep(1000)     #1000 for test mode
 
-"""
+
+
+'''
+
 
 #TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
 
 moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
-moNew = process_soup(exampleNewSoup)
+#print(moOriginal[0])
+
+pprint.pprint(dictCreator(moOriginal[0]))
+
+# moNew = process_soup(exampleNewSoup)
+
+
+
+
+
+
+"""
 original20 = create_topList(moOriginal, 20)   #match object, desired number of projects in list
 new20 = create_topList(moNew, 20)
 print("new projects are: ", new_project_search(new20, original20))
 print("original20 looks like this: ",original20)
 print("the job# in the first item in original20 looks like this: ", original20[0][3])
+"""
+
 
 # for all job #s in new20, if job# appears in original20:
     # for all non-numerical items, their equivalent in changed20 is identical to new20
     # for all numerical items in that job for new20:
         # changed20 equivalent = new20 number minus original20 number
-
-changed20 = []
-print("len of new20 is ",len(new20))
-print("len of new20[0] is",len(new20[0]))
-print("len of original20 is ",len(original20))
-print("len of changed20 is ",len(changed20))
-
-for i in range(0, len(new20)):
-    for x in range(0,len(original20)):
-        if new20[i][3] == original20[x][3]:
-            for y in range(0, len(new20[i])):
-                print("i is {} and x is {} and y is {}".format(i, x, y))
-                # I can see that this won't work because i doesn't start at zero. Need to tell it to create new list item each time the if statement repeats
-                # changed20[i][y] = new20[i][y]
-
-print(changed20)
-
 
 
 
@@ -325,3 +356,4 @@ print(changed20)
 # exampleNewbies = new_project_search(exampleLatest10, exampleOriginal10)
 # print('The example new projects are:\n',exampleNewbies,'\n')
 # send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',str(exampleNewbies))
+
