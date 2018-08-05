@@ -287,12 +287,14 @@ def create_masterDict(mo):     #creates a dict of all project dicts in given MO
 #First I want to change my data structure back to dictionaries, so that new and old dictionaries can be compared (hopefully)
 # more easily
 
-#master dict creator function should take mo as argument and utilise dictcreator
-
 moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
-masterDict = create_masterDict(moOriginal)
+originalDict = create_masterDict(moOriginal)
 
+# now I can create a dictionary of the new content
+moNew = process_soup(exampleNewSoup)
+newDict = create_masterDict(moNew)
 
+#now I need to compare the two and report the differences
 
 
 
