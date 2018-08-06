@@ -274,7 +274,7 @@ def dictCreator(valueList):   #this function takes in a MO from the regex and cr
 def create_masterDict(mo):     #creates a dict of all project dicts in given MO
     mDict = {}
     for i in range(0,len(mo)):
-        logging.debug(f'i is {i}, adding {mo[i][3]} to mDict')
+        # logging.debug(f'i is {i}, adding {mo[i][3]} to mDict')
         mDict.setdefault(mo[i][3],dictCreator(mo[i]))
     #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
     #for i in range(0, len(mo) - 1):
@@ -296,9 +296,25 @@ newDict = create_masterDict(moNew)
 
 #now I need to compare the two and report the differences
 
+changesDict = {}   # this dict will store the difference between new + old dicts
+
+for k, v in newDict.items(): # for each key value pair in the main new dict (top level)
+    if k not in originalDict.keys():
+        # print('Not in originalDict:',k, v)
+        changesDict.setdefault(k, v)
+    else:
+        origJob = originalDict.get(k)
+        newJob = newDict.get(k)
 
 
+        print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
+        #for a, b in v.items(): # for each key value pair in the nested dictionaries
+        #    print(a, b)
 
+
+# print the changesDict
+#for k, v in changesDict.items():
+#    print(k, v)
 
 
 
