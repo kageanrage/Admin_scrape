@@ -299,15 +299,20 @@ newDict = create_masterDict(moNew)
 changesDict = {}   # this dict will store the difference between new + old dicts
 
 for k, v in newDict.items(): # for each key value pair in the main new dict (top level)
-    if k not in originalDict.keys():
+    if k not in originalDict.keys(): # if the project is newly created since yesterday
         # print('Not in originalDict:',k, v)
-        changesDict.setdefault(k, v)
-    else:
-        origJob = originalDict.get(k)
-        newJob = newDict.get(k)
+        changesDict.setdefault(k, v) # add all its contents to the changesDict
+    else: # but if the project isn't new (was found in yesterday's data)
+        jobStatusYesterday = originalDict.get(k) # grab the nested dic from yesterday
+        jobStatusToday = newDict.get(k) # grab the nested dic from today
+        for a, b in jobStatusToday.items(): # loop through the details of today's nested dir
+            # print(f'checking {a}')
+            if b != jobStatusYesterday.get(a): # if any values have changed since yesterday
+                print(f'Discrepancy on {k} for {a} between {b} and {jobStatusYesterday.get(a)}') #print details
 
 
-        print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
+
+        # print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
         #for a, b in v.items(): # for each key value pair in the nested dictionaries
         #    print(a, b)
 
