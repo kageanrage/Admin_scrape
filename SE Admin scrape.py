@@ -305,10 +305,18 @@ for k, v in newDict.items(): # for each key value pair in the main new dict (top
     else: # but if the project isn't new (was found in yesterday's data)
         jobStatusYesterday = originalDict.get(k) # grab the nested dic from yesterday
         jobStatusToday = newDict.get(k) # grab the nested dic from today
-        for a, b in jobStatusToday.items(): # loop through the details of today's nested dir
+        for a, b    in jobStatusToday.items(): # loop through the details of today's nested dir
             # print(f'checking {a}')
+            changesNested = {} #create blank nested dict
             if b != jobStatusYesterday.get(a): # if any values have changed since yesterday
                 print(f'Discrepancy on {k} for {a} between {b} and {jobStatusYesterday.get(a)}') #print details
+                #calculate 'difference' value if value is numeric. Otherwise flag somehow? Will pause here to define ideal 'diffences' sheet in excel
+                #add to nested dict
+            else:
+                print(f'No change on {k} for {a} which remains as {jobStatusYesterday.get(a)}')
+                #add to nested dict
+            #add the now-complete nested dict to changesDict
+
 
 
 
