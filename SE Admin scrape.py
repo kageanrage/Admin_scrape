@@ -180,26 +180,30 @@ def excel_export_dict(dict):     #### Modifying excel_export list fn to work wit
     headingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
     # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
 
+    # this bit populates and emboldens the first row
+    row = 1
+    for column in range(0,len(headingsList)):
+        cell = sheet.cell(row=row, column=column+1)
+        cell.value = headingsList[column]
+    make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
+
+    #this bit then populates the rest of the sheet with the masterDict content
     for row, item_tuple in enumerate(newDict.items(), 2):
         # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
         for column, heading in enumerate(headingsList, 1):
             print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
-
-
-
-
-    for row_number in range(1, len(newDict)):
-        for numbers_starting_from_1, items_from_headingsList in enumerate(headingsList, 1):
-            cell = sheet.cell(row=row_number, column=numbers_starting_from_1)
-            key = headingsList[numbers_starting_from_1-1]
-            v = newDict.get(key)
+            cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
+            v = item_tuple[1].get(heading)
+            try:
+                v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
+            except ValueError:
+                pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
             cell.value = v
+            if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
+                cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
 
-    # this section populates the first row in the sheet (headings) with bold style
-    make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
     wb.save('admin_dict.xlsx')  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
-
 
 
 def make_bold(sheet, wb, sheetSlice):
