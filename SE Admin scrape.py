@@ -171,32 +171,36 @@ def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
 
-def excel_export_dict(list):     #### Modifying excel_export list fn to work with dict  #####
+def excel_export_dict(dict):     #### Modifying excel_export list fn to work with master_dict  #####
     logging.debug('Excel section - creating workbook object')
     wb = openpyxl.Workbook()  # create excel workbook object
-    wb.save('admin_dict.xlsx')  # save workbook as admin.xlsx
+    wb.save('admin_dict.xlsx')  # save workbook
     sheet = wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
-    wb.save('admin_dict.xlsx')  # save workbook as admin.xlsx
-    headingsList = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
-                    'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']] #UNTESTED
+    wb.save('admin_dict.xlsx')  # save workbook
+    headingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
     # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
-    for row, rowData in enumerate(list,
-                                  1):  # where row is a number starting with 1, increasing each loop, and rowData = each masterList item
-        for column in range(1, 15):  # where column is a number starting with 1 and ending with 14
-            cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
-            v = rowData[column - 1]
-            try:
-                v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
-            except ValueError:
-                pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
-            cell.value = v  # write the value (v) to the cell
-            if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
-                cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
+
+    for row, item_tuple in enumerate(newDict.items(), 2):
+        # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
+        for column, heading in enumerate(headingsList, 1):
+            print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
+
+
+
+
+    for row_number in range(1, len(newDict)):
+        for numbers_starting_from_1, items_from_headingsList in enumerate(headingsList, 1):
+            cell = sheet.cell(row=row_number, column=numbers_starting_from_1)
+            key = headingsList[numbers_starting_from_1-1]
+            v = newDict.get(key)
+            cell.value = v
 
     # this section populates the first row in the sheet (headings) with bold style
-    #make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
-    wb.save('admin.xlsx')  # save workbook as admin.xlsx
+    make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
+    wb.save('admin_dict.xlsx')  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
+
+
 
 def make_bold(sheet, wb, sheetSlice):
     highlight = NamedStyle(name='highlight')
@@ -319,8 +323,15 @@ originalDict = create_masterDict(moOriginal)
 # now I can create a dictionary of the new content
 moNew = process_soup(exampleNewSoup)
 newDict = create_masterDict(moNew)
+excel_export_dict(newDict)
+
+
+
+
 
 #now I need to compare the two and report the differences
+
+"""
 
 changesDict = {}   # this dict will store the difference between new + old dicts
 
@@ -350,7 +361,7 @@ for k, v in newDict.items(): # for each key value pair in the main new dict (top
         #for a, b in v.items(): # for each key value pair in the nested dictionaries
         #    print(a, b)
 
-
+"""
 # print the changesDict
 #for k, v in changesDict.items():
 #    print(k, v)
