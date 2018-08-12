@@ -191,7 +191,7 @@ def excel_export_dict(dict):     #### Modifying excel_export list fn to work wit
     for row, item_tuple in enumerate(newDict.items(), 2):
         # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
         for column, heading in enumerate(headingsList, 1):
-            print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
+            # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
             v = item_tuple[1].get(heading)
             try:
@@ -327,15 +327,13 @@ originalDict = create_masterDict(moOriginal)
 # now I can create a dictionary of the new content
 moNew = process_soup(exampleNewSoup)
 newDict = create_masterDict(moNew)
-excel_export_dict(newDict)
-
+# excel_export_dict(newDict)
 
 
 
 
 #now I need to compare the two and report the differences
 
-"""
 
 changesDict = {}   # this dict will store the difference between new + old dicts
 
@@ -346,7 +344,7 @@ for k, v in newDict.items(): # for each key value pair in the main new dict (top
     else: # but if the project isn't new (was found in yesterday's data)
         jobStatusYesterday = originalDict.get(k) # grab the nested dic from yesterday
         jobStatusToday = newDict.get(k) # grab the nested dic from today
-        for a, b    in jobStatusToday.items(): # loop through the details of today's nested dir
+        for a, b in jobStatusToday.items(): # loop through the details of today's nested dir
             # print(f'checking {a}')
             changesNested = {} #create blank nested dict
             if b != jobStatusYesterday.get(a): # if any values have changed since yesterday
@@ -365,7 +363,7 @@ for k, v in newDict.items(): # for each key value pair in the main new dict (top
         #for a, b in v.items(): # for each key value pair in the nested dictionaries
         #    print(a, b)
 
-"""
+
 # print the changesDict
 #for k, v in changesDict.items():
 #    print(k, v)
