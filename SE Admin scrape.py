@@ -357,6 +357,7 @@ for k, v in latestDict.items(): # for each key value pair in the main new dict (
             #add the now-complete nested dict to changesDict
 
 
+excel_export_dict(changesDict, 'changes_dict.xlsx')
 
 
         # print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
