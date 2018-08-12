@@ -171,12 +171,12 @@ def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
 
-def excel_export_dict(dict):     #### Modifying excel_export list fn to work with master_dict  #####
+def excel_export_dict(dict, filename):     #### Modifying excel_export list fn to work with master_dict  #####
     logging.debug('Excel section - creating workbook object')
     wb = openpyxl.Workbook()  # create excel workbook object
-    wb.save('admin_dict.xlsx')  # save workbook
+    wb.save(filename)  # save workbook
     sheet = wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
-    wb.save('admin_dict.xlsx')  # save workbook
+    wb.save(filename)  # save workbook
     headingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
     # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
 
@@ -188,7 +188,7 @@ def excel_export_dict(dict):     #### Modifying excel_export list fn to work wit
     make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
 
     #this bit then populates the rest of the sheet with the masterDict content
-    for row, item_tuple in enumerate(newDict.items(), 2):
+    for row, item_tuple in enumerate(dict.items(), 2):
         # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
         for column, heading in enumerate(headingsList, 1):
             # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
@@ -202,7 +202,7 @@ def excel_export_dict(dict):     #### Modifying excel_export list fn to work wit
             if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
                 cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
 
-    wb.save('admin_dict.xlsx')  # save workbook as admin.xlsx
+    wb.save(filename)  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
 
 
@@ -326,8 +326,8 @@ originalDict = create_masterDict(moOriginal)
 
 # now I can create a dictionary of the new content
 moNew = process_soup(exampleNewSoup)
-newDict = create_masterDict(moNew)
-# excel_export_dict(newDict)
+latestDict = create_masterDict(moNew)
+excel_export_dict(latestDict, 'admin_dict2.xlsx')
 
 
 
@@ -337,13 +337,13 @@ newDict = create_masterDict(moNew)
 
 changesDict = {}   # this dict will store the difference between new + old dicts
 
-for k, v in newDict.items(): # for each key value pair in the main new dict (top level)
+for k, v in latestDict.items(): # for each key value pair in the main new dict (top level)
     if k not in originalDict.keys(): # if the project is newly created since yesterday
         # print('Not in originalDict:',k, v)
         changesDict.setdefault(k, v) # add all its contents to the changesDict
     else: # but if the project isn't new (was found in yesterday's data)
         jobStatusYesterday = originalDict.get(k) # grab the nested dic from yesterday
-        jobStatusToday = newDict.get(k) # grab the nested dic from today
+        jobStatusToday = latestDict.get(k) # grab the nested dic from today
         for a, b in jobStatusToday.items(): # loop through the details of today's nested dir
             # print(f'checking {a}')
             changesNested = {} #create blank nested dict
