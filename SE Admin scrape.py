@@ -332,9 +332,22 @@ excel_export_dict(latestDict, 'admin_dict2.xlsx')
 
 
 
-#now I need to compare the two and report the differences
+#now I need to create dictionary with old data, new data and the differences between the two, highlighting those differences
+# or perhaps also not exporting rows with no change
+
+mergedDict = {}
+mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes_old','Completes_new','Completes_diff','Screen Outs_old','Screen Outs_new','Screen Outs_diff','Quota Fulls_old','Quota Fulls_new','Quota Fulls_diff','Live on site', 'incidence', 'incidence_latest', 'QFincidence', 'QFincidence_latest']
+
+# add all the old data
+# add all the new data
+# calculate diffs
+# excel export
+# go back and add formatting / withhold cells from export
 
 
+
+# this content was here because I was planning to create a dict with only differences, but instead will create a combined
+# dict and highlight changes within it or dim non-changes
 changesDict = {}   # this dict will store the difference between new + old dicts
 
 for k, v in latestDict.items(): # for each key value pair in the main new dict (top level)
