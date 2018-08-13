@@ -327,7 +327,7 @@ originalDict = create_masterDict(moOriginal)
 # now I can create a dictionary of the new content
 moNew = process_soup(exampleNewSoup)
 latestDict = create_masterDict(moNew)
-excel_export_dict(latestDict, 'admin_dict2.xlsx')
+# excel_export_dict(latestDict, 'admin_dict2.xlsx')
 
 
 
@@ -338,8 +338,52 @@ excel_export_dict(latestDict, 'admin_dict2.xlsx')
 mergedDict = {}
 mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes_old','Completes_new','Completes_diff','Screen Outs_old','Screen Outs_new','Screen Outs_diff','Quota Fulls_old','Quota Fulls_new','Quota Fulls_diff','Live on site', 'incidence', 'incidence_latest', 'QFincidence', 'QFincidence_latest']
 
-# add all the old data
+
+# Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
+# dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
+# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries
+
+oldMappingDict = {}
+logging.debug('Now attempting to read-in excel data')
+map_wb = openpyxl.load_workbook('mapping.xlsx')
+map_sheet = map_wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
+
+for row in range(3,17):
+    for column in range(1,3):
+        map_cell = map_sheet.cell(row = row, column = column)
+        v = map_cell.value
+        print(f'row is {row}. Column is {column}, value is {v}')
+        if column == 1:
+            key = v
+        else:
+            value = v
+    oldMappingDict.setdefault(key, value)
+
+print('Now printing old Mapping Dict')
+pprint.pprint(oldMappingDict)
+
+# OK so that mapping dict creation worked, so do the same for a newMappingDict and then push this into functions to
+# tidy up the code
+
+
+
+
+
+"""
 # add all the new data
+for k, v in latestDict.items():
+    mergedDict.setdefault(k, v) # need to change this so it maps to new headings (e.g completes_new etc)
+    if k in originalDict.keys(): # if the project is not brand new
+        nestedDict = originalDict.get(k) # grab the old version of its nested dict
+        for a, b in nestedDict.items(): # add old data to nested merged dict
+
+
+print('Printing mergedDict')
+pprint.pprint(mergedDict)
+
+"""
+
+# add all the old data (where existing)
 # calculate diffs
 # excel export
 # go back and add formatting / withhold cells from export
@@ -348,6 +392,8 @@ mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name'
 
 # this content was here because I was planning to create a dict with only differences, but instead will create a combined
 # dict and highlight changes within it or dim non-changes
+
+"""
 changesDict = {}   # this dict will store the difference between new + old dicts
 
 for k, v in latestDict.items(): # for each key value pair in the main new dict (top level)
@@ -369,8 +415,9 @@ for k, v in latestDict.items(): # for each key value pair in the main new dict (
                 #add to nested dict
             #add the now-complete nested dict to changesDict
 
+"""
 
-excel_export_dict(changesDict, 'changes_dict.xlsx')
+# excel_export_dict(changesDict, 'changes_dict.xlsx')
 
 
         # print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
