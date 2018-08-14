@@ -343,27 +343,33 @@ mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name'
 # dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
 # 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries
 
-oldMappingDict = {}
-logging.debug('Now attempting to read-in excel data')
-map_wb = openpyxl.load_workbook('mapping.xlsx')
-map_sheet = map_wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
 
-for row in range(3,17):
-    for column in range(1,3):
-        map_cell = map_sheet.cell(row = row, column = column)
-        v = map_cell.value
-        print(f'row is {row}. Column is {column}, value is {v}')
-        if column == 1:
-            key = v
-        else:
-            value = v
-    oldMappingDict.setdefault(key, value)
+def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
+    logging.debug('Now attempting to read-in excel data to create dict')
+    map_wb = openpyxl.load_workbook(excel_filename)
+    map_sheet = map_wb.get_active_sheet()
+    dict = {}
+    for row in range(r1,r2):
+        for column in range(c1,c2):
+            map_cell = map_sheet.cell(row = row, column = column)
+            v = map_cell.value
+            #print(f'row is {row}. Column is {column}, value is {v}')
+            if column == c1:
+                key = v
+            else:
+                value = v
+        dict.setdefault(key, value)
+    return dict
 
-print('Now printing old Mapping Dict')
-pprint.pprint(oldMappingDict)
 
-# OK so that mapping dict creation worked, so do the same for a newMappingDict and then push this into functions to
-# tidy up the code
+oldMap = excelToDictConverter('mapping.xlsx',3,17,1,3)
+newMap = excelToDictConverter('mapping.xlsx',3,17,4,6)
+
+print('Now printing old Mapping Dict from function')
+pprint.pprint(oldMap)
+
+print('Now printing new Mapping Dict from function')
+pprint.pprint(newMap)
 
 
 
