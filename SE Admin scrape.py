@@ -293,12 +293,12 @@ def dictCreator(valueList):   #this function takes in a MO from the regex and cr
         try:
             incidence = (completes / (completes + SOs))
         except Exception as err:
-            print('an exception occured: ', err)
+            #print ('an exception occured: ', err)
             incidence = 0
         try:
             QFIncidence = (completes / (completes + SOs + QFs))
         except Exception as err2:
-            print('an exception occured:',err2)
+            # print('an exception occured:',err2)
             QFIncidence = 0
     newDict.setdefault('incidence', incidence)
     newDict.setdefault('QFincidence', QFIncidence)
@@ -358,11 +358,11 @@ def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename 
 oldMap = excelToDictConverter('mapping.xlsx',3,17,1,3)
 newMap = excelToDictConverter('mapping.xlsx',3,17,4,6)
 
-print('Now printing old Mapping Dict from function')
-pprint.pprint(oldMap)
+# print('Now printing old Mapping Dict from function')
+# pprint.pprint(oldMap)
 
-print('Now printing new Mapping Dict from function')
-pprint.pprint(newMap)
+# print('Now printing new Mapping Dict from function')
+# pprint.pprint(newMap)
 
 # now I need to create a new dict that contains all the info - new, old and dynamically created, and then export this to excel (perhaps excluding unchanged rows), then have this emailed each morning to KP/JW
 
@@ -372,8 +372,27 @@ mergedDict = {}
 # first add old projects, using modified headings/keys
 # let's have a look at the old dict
 
+# logging.debug('Now printing Original dict to have a look as a starting point')
+# pprint.pprint(originalDict)
+
+for k, v in originalDict.items():
+    nestedDict = {}
+    for nk, nv in v.items():
+        # print(nk, nv)
+        equiv = oldMap.get(nk)
+        if equiv != nk:
+            # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
+            nestedDict.setdefault(equiv, nv)
+        else:
+            # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
+            nestedDict.setdefault(nk, nv)
+    mergedDict.setdefault(k, nestedDict)
+
+logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings')
+pprint.pprint(mergedDict)
 
 
+# ok that worked, now to add all the new data, bearing in mind that the project may or may not already exist in mergedDict
 
 
 
