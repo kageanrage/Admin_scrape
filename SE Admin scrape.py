@@ -150,7 +150,7 @@ def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     logging.debug('Excel section - creating workbook object')
     wb = openpyxl.Workbook()  # create excel workbook object
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
-    sheet = wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
+    sheet = wb.active  # create sheet object as the Active sheet from the workbook object
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
     # LIST-BASED POPULATION OF EXCEL SHEET
     for row, rowData in enumerate(list,
@@ -175,7 +175,7 @@ def excel_export_dict(dict, filename):     #### Modifying excel_export list fn t
     logging.debug('Excel section - creating workbook object')
     wb = openpyxl.Workbook()  # create excel workbook object
     wb.save(filename)  # save workbook
-    sheet = wb.get_active_sheet()  # create sheet object as the Active sheet from the workbook object
+    sheet = wb.active  # create sheet object as the Active sheet from the workbook object
     wb.save(filename)  # save workbook
     headingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
     # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
@@ -316,10 +316,9 @@ def create_masterDict(mo):     #creates a dict of all project dicts in given MO
     return mDict
 
 
-#JULY-2018 - this is my current working area
+#AUG-2018 - this is my current working area
 #TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
-#First I want to change my data structure back to dictionaries, so that new and old dictionaries can be compared (hopefully)
-# more easily
+#First I want to change my data structure back to dictionaries, so that new and old dictionaries can be combined/compared
 
 moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
 originalDict = create_masterDict(moOriginal)
@@ -331,23 +330,17 @@ latestDict = create_masterDict(moNew)
 
 
 
-
-#now I need to create dictionary with old data, new data and the differences between the two, highlighting those differences
-# or perhaps also not exporting rows with no change
-
-mergedDict = {}
-mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes_old','Completes_new','Completes_diff','Screen Outs_old','Screen Outs_new','Screen Outs_diff','Quota Fulls_old','Quota Fulls_new','Quota Fulls_diff','Live on site', 'incidence', 'incidence_latest', 'QFincidence', 'QFincidence_latest']
-
+#now I need to create dictionary with old data, new data and the differences between the two
 
 # Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
 # dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
-# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries
+# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'excelToDictConverter'
 
 
 def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
     logging.debug('Now attempting to read-in excel data to create dict')
     map_wb = openpyxl.load_workbook(excel_filename)
-    map_sheet = map_wb.get_active_sheet()
+    map_sheet = map_wb.active
     dict = {}
     for row in range(r1,r2):
         for column in range(c1,c2):
@@ -370,6 +363,15 @@ pprint.pprint(oldMap)
 
 print('Now printing new Mapping Dict from function')
 pprint.pprint(newMap)
+
+# now I need to create a new dict that contains all the info - new, old and dynamically created, and then export this to excel (perhaps excluding unchanged rows), then have this emailed each morning to KP/JW
+
+mergedDict = {}
+# mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes_old','Completes_new','Completes_diff','Screen Outs_old','Screen Outs_new','Screen Outs_diff','Quota Fulls_old','Quota Fulls_new','Quota Fulls_diff','Live on site', 'incidence', 'incidence_latest', 'QFincidence', 'QFincidence_latest']
+
+# first add old projects, using modified headings/keys
+# let's have a look at the old dict
+
 
 
 
