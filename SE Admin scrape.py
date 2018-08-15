@@ -376,7 +376,7 @@ mergedDict = {}
 # pprint.pprint(originalDict)
 
 for k, v in originalDict.items():
-    nestedDict = {}
+    nestedDict = {}  # blank dict which we will add to mergedDict at the end of each loop
     for nk, nv in v.items():
         # print(nk, nv)
         equiv = oldMap.get(nk)
@@ -390,9 +390,32 @@ for k, v in originalDict.items():
 
 logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings')
 pprint.pprint(mergedDict)
+print(f'len of mergedDict so far (with old data only) is {len(mergedDict)}')
 
 
 # ok that worked, now to add all the new data, bearing in mind that the project may or may not already exist in mergedDict
+
+for k, v in latestDict.items():
+    nestedDict = {} # blank dict which we will add to mergedDict at the end of each loop
+    if k not in mergedDict.keys():   # if a totally new project
+        for nk, nv in v.items():    # loop through the keys and values of the project
+            # print(nk, nv)
+            equiv = newMap.get(nk)
+            if equiv != nk:
+                # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
+                nestedDict.setdefault(equiv, nv)
+            else:
+                # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
+                nestedDict.setdefault(nk, nv)
+    # THIS IS WHERE I ADD LOGIC FOR NON-BRAND-NEW PROJECTS
+    mergedDict.setdefault(k, nestedDict)
+
+
+logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings, plus any brand new projects, also under new headings')
+pprint.pprint(mergedDict)
+print(f'len of mergedDict so far (with brand new jobs added too) is {len(mergedDict)}')
+
+# OK once again that seemed to work fine. Now need to adjust the above to account for non-brand-new projects
 
 
 
