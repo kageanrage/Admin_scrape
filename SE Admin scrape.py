@@ -395,8 +395,6 @@ lenOriginalDict = len(originalDict)
 lenMergedPostOld = len(mergedDict)
 
 
-
-
 # ok that worked, now to add all the new data, bearing in mind that the project may or may not already exist in mergedDict
 
 for k, v in latestDict.items():
@@ -405,13 +403,11 @@ for k, v in latestDict.items():
         for nk, nv in v.items():    # loop through the keys and values of the project
             # print(nk, nv)
             equiv = newMap.get(nk)
-            if equiv != nk:
-                # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
-                nestedDict.setdefault(equiv, nv)
-            else:
-                # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
-                nestedDict.setdefault(nk, nv) #I think this is actually redundant and I can remove the if/else and just set tio equiv every time
-    else:   ##### this doesn't seem to be working
+            nestedDict.setdefault(equiv, nv)
+            nestedDict.setdefault('Completes_Original', 0)
+            nestedDict.setdefault('Screen Outs_Original', 0)
+            nestedDict.setdefault('Quota Fulls_Original', 0)
+    else:
         print(f'{k} found in mergedDict.keys, attempting to add to it')
         for nk, nv in v.items():    # loop through the keys and values of the project
             # print(nk, nv)
@@ -424,6 +420,25 @@ for k, v in latestDict.items():
 
 
 
+# now let's add the formula-calculated fields within each dict, starting with one as an example ('P-44868')
+
+for k, v in mergedDict.items():
+    c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
+    v['Completes_gap'] = c_gap
+    # print(f'Completes Gap for {k} is {c_gap}')
+    s_gap = int(v['Screen Outs_Revised']) - int(v['Screen Outs_Original'])
+    v['Screen Outs_gap'] = s_gap
+    # print(f'Screen Outs Gap for {k} is {s_gap}')
+    q_gap = int(v['Quota Fulls_Revised']) - int(v['Quota Fulls_Original'])
+    v['Quota Fulls_gap'] = q_gap
+    # print(f'Quota Fulls Gap for {k} is {q_gap}')
+
+# the above works, but I've realised my incidence logic is flawed (having zero QFs does not mean IR is zero) so need to create IR/QFIR calculating function
+
+
+
+
+
 lenMergedPostBrandNew = len(mergedDict)
 
 
@@ -431,16 +446,12 @@ lenMergedPostBrandNew = len(mergedDict)
 logging.debug('Printing mergedDict which now should contain all the old and new data')
 pprint.pprint(mergedDict)
 
-# OK once again that seemed to work fine. Now need to adjust the above to account for non-brand-new projects
 
 
 print('here are the various file lengths for troubleshooting:')
 print(f'len originalDict is {lenOriginalDict}')
 print(f'len of mergedDict after adding old data is {lenMergedPostOld}')
 print(f'len of mergedDict after adding brand new data is {lenMergedPostBrandNew}')
-
-
-
 
 
 
