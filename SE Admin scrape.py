@@ -388,9 +388,13 @@ for k, v in originalDict.items():
             nestedDict.setdefault(nk, nv)
     mergedDict.setdefault(k, nestedDict)
 
-logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings')
-pprint.pprint(mergedDict)
-print(f'len of mergedDict so far (with old data only) is {len(mergedDict)}')
+# logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings')
+# pprint.pprint(mergedDict)
+
+lenOriginalDict = len(originalDict)
+lenMergedPostOld = len(mergedDict)
+
+
 
 
 # ok that worked, now to add all the new data, bearing in mind that the project may or may not already exist in mergedDict
@@ -406,78 +410,36 @@ for k, v in latestDict.items():
                 nestedDict.setdefault(equiv, nv)
             else:
                 # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
-                nestedDict.setdefault(nk, nv)
-    # THIS IS WHERE I ADD LOGIC FOR NON-BRAND-NEW PROJECTS
+                nestedDict.setdefault(nk, nv) #I think this is actually redundant and I can remove the if/else and just set tio equiv every time
+    else:   ##### this doesn't seem to be working
+        print(f'{k} found in mergedDict.keys, attempting to add to it')
+        for nk, nv in v.items():    # loop through the keys and values of the project
+            # print(nk, nv)
+            equiv = newMap.get(nk)
+            if equiv not in mergedDict[k].keys():
+                print(f'adding to {k}: {equiv} = {nv}')
+                mergedDict[k][equiv] = nv
+
     mergedDict.setdefault(k, nestedDict)
 
 
-logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings, plus any brand new projects, also under new headings')
+
+lenMergedPostBrandNew = len(mergedDict)
+
+
+
+logging.debug('Printing mergedDict which now should contain all the old and new data')
 pprint.pprint(mergedDict)
-print(f'len of mergedDict so far (with brand new jobs added too) is {len(mergedDict)}')
 
 # OK once again that seemed to work fine. Now need to adjust the above to account for non-brand-new projects
 
 
-
-"""
-# add all the new data
-for k, v in latestDict.items():
-    mergedDict.setdefault(k, v) # need to change this so it maps to new headings (e.g completes_new etc)
-    if k in originalDict.keys(): # if the project is not brand new
-        nestedDict = originalDict.get(k) # grab the old version of its nested dict
-        for a, b in nestedDict.items(): # add old data to nested merged dict
+print('here are the various file lengths for troubleshooting:')
+print(f'len originalDict is {lenOriginalDict}')
+print(f'len of mergedDict after adding old data is {lenMergedPostOld}')
+print(f'len of mergedDict after adding brand new data is {lenMergedPostBrandNew}')
 
 
-print('Printing mergedDict')
-pprint.pprint(mergedDict)
-
-"""
-
-# add all the old data (where existing)
-# calculate diffs
-# excel export
-# go back and add formatting / withhold cells from export
-
-
-
-# this content was here because I was planning to create a dict with only differences, but instead will create a combined
-# dict and highlight changes within it or dim non-changes
-
-"""
-changesDict = {}   # this dict will store the difference between new + old dicts
-
-for k, v in latestDict.items(): # for each key value pair in the main new dict (top level)
-    if k not in originalDict.keys(): # if the project is newly created since yesterday
-        # print('Not in originalDict:',k, v)
-        changesDict.setdefault(k, v) # add all its contents to the changesDict
-    else: # but if the project isn't new (was found in yesterday's data)
-        jobStatusYesterday = originalDict.get(k) # grab the nested dic from yesterday
-        jobStatusToday = latestDict.get(k) # grab the nested dic from today
-        for a, b in jobStatusToday.items(): # loop through the details of today's nested dir
-            # print(f'checking {a}')
-            changesNested = {} #create blank nested dict
-            if b != jobStatusYesterday.get(a): # if any values have changed since yesterday
-                print(f'Discrepancy on {k} for {a} between {b} and {jobStatusYesterday.get(a)}') #print details
-                #calculate 'difference' value if value is numeric. Otherwise flag somehow? Will pause here to define ideal 'diffences' sheet in excel
-                #add to nested dict
-            else:
-                print(f'No change on {k} for {a} which remains as {jobStatusYesterday.get(a)}')
-                #add to nested dict
-            #add the now-complete nested dict to changesDict
-
-"""
-
-# excel_export_dict(changesDict, 'changes_dict.xlsx')
-
-
-        # print(f"{k} was found in originalDict and its details are {originalDict.get(k)}")
-        #for a, b in v.items(): # for each key value pair in the nested dictionaries
-        #    print(a, b)
-
-
-# print the changesDict
-#for k, v in changesDict.items():
-#    print(k, v)
 
 
 
