@@ -286,7 +286,7 @@ def dictCreator(valueList):   #this function takes in a MO from the regex and cr
     completes = int(valueList[8])
     QFs = int(valueList[10])
     SOs = int(valueList[9])
-    if completes == 0 | SOs == 0 | QFs == 0:
+    if completes == 0:
         incidence = 0
         QFIncidence = 0
     else:
@@ -408,12 +408,12 @@ for k, v in latestDict.items():
             nestedDict.setdefault('Screen Outs_Original', 0)
             nestedDict.setdefault('Quota Fulls_Original', 0)
     else:
-        print(f'{k} found in mergedDict.keys, attempting to add to it')
+        # print(f'{k} found in mergedDict.keys, attempting to add to it')
         for nk, nv in v.items():    # loop through the keys and values of the project
             # print(nk, nv)
             equiv = newMap.get(nk)
             if equiv not in mergedDict[k].keys():
-                print(f'adding to {k}: {equiv} = {nv}')
+                # print(f'adding to {k}: {equiv} = {nv}')
                 mergedDict[k][equiv] = nv
 
     mergedDict.setdefault(k, nestedDict)
@@ -432,26 +432,69 @@ for k, v in mergedDict.items():
     q_gap = int(v['Quota Fulls_Revised']) - int(v['Quota Fulls_Original'])
     v['Quota Fulls_gap'] = q_gap
     # print(f'Quota Fulls Gap for {k} is {q_gap}')
+    try:
+        oIR = (c_gap / (c_gap + s_gap))
+        v['incidence_overnight'] = oIR
+    except Exception as err:
+        #print ('an exception occured: ', err)
+        oIR = 0
+        v['incidence_overnight'] = oIR
+    try:
+        oQFIR = (c_gap / (c_gap + s_gap + q_gap))
+        v['QFincidence_overnight'] = oQFIR
+    except Exception as err:
+        #print ('an exception occured: ', err)
+        oQFIR = 0
+        v['QFincidence_overnight'] = oQFIR
 
-# the above works, but I've realised my incidence logic is flawed (having zero QFs does not mean IR is zero) so need to create IR/QFIR calculating function
+
+headingsList = ['URL',
+'Alias',
+'Survey name',
+'Project number',
+'Client name',
+'junk',
+'Expected LOI',
+'Actual LOI',
+'Completes_Original',
+'Completes_Revised',
+'Completes_gap',
+'Screen Outs_Original',
+'Screen Outs_Revised',
+'Screen Outs_gap',
+'Quota Fulls_Original',
+'Quota Fulls_Revised',
+'Quota Fulls_gap',
+'Live on site',
+'incidence',
+'incidence_overnight',
+'QFincidence',
+'Qfincidence_overnight',
+]
 
 
+# print(headingsList)
 
 
+# pprint.pprint(mergedDict['P-44691'])
+
+for heading in headingsList:
+    value = mergedDict['P-44691'][heading]
+    print(f'key is {heading} value is {value}')
 
 lenMergedPostBrandNew = len(mergedDict)
 
 
 
-logging.debug('Printing mergedDict which now should contain all the old and new data')
-pprint.pprint(mergedDict)
+# logging.debug('Printing mergedDict which now should contain all the old and new data')
+# pprint.pprint(mergedDict)
 
 
 
-print('here are the various file lengths for troubleshooting:')
-print(f'len originalDict is {lenOriginalDict}')
-print(f'len of mergedDict after adding old data is {lenMergedPostOld}')
-print(f'len of mergedDict after adding brand new data is {lenMergedPostBrandNew}')
+# print('here are the various file lengths for troubleshooting:')
+# print(f'len originalDict is {lenOriginalDict}')
+# print(f'len of mergedDict after adding old data is {lenMergedPostOld}')
+# print(f'len of mergedDict after adding brand new data is {lenMergedPostBrandNew}')
 
 
 
