@@ -448,7 +448,7 @@ for k, v in mergedDict.items():
         v['QFincidence_overnight'] = oQFIR
 
 
-headingsList = ['URL',
+mergedDictHeadings = ['URL',
 'Alias',
 'Survey name',
 'Project number',
@@ -473,14 +473,54 @@ headingsList = ['URL',
 ]
 
 
-# print(headingsList)
+# now attempting excel export function
 
 
-# pprint.pprint(mergedDict['P-44691'])
+def excel_export_mergedDict(dict, filename, headings):     #### Modifying excel_export list fn to work with master_dict  #####
+    logging.debug('Attempting to export mergedDict to excel')
+    wb = openpyxl.Workbook()  # create excel workbook object
+    wb.save(filename)  # save workbook
+    sheet = wb.active  # create sheet object as the Active sheet from the workbook object
+    wb.save(filename)  # save workbook
 
-for heading in headingsList:
-    value = mergedDict['P-44691'][heading]
-    print(f'key is {heading} value is {value}')
+    # this bit populates and emboldens the first row
+    row = 1
+    for column in range(0,len(headings)):
+        cell = sheet.cell(row=row, column=column+1)
+        cell.value = headings[column]
+    make_bold(sheet, wb, sheet['A1':'V1'])    #Calls the make_bold function on first row of excel sheet
+
+    #this bit then populates the rest of the sheet with the mergedDict content
+    for row, item_tuple in enumerate(dict.items(), 2):
+        # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
+        for column, heading in enumerate(headings, 1):
+            # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
+            cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
+            v = item_tuple[1].get(heading)
+            try:
+                v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
+            except ValueError:
+                pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
+            except TypeError:
+                pass
+            cell.value = v
+            if (column == 19) | (column == 20) | (column == 21) | (column == 22):  # for all cells in these columns
+                cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
+
+    wb.save(filename)  # save workbook as admin.xlsx
+    logging.debug('Excel workbook completed and saved')
+
+
+
+excel_export_mergedDict(mergedDict, 'mergedDict.xlsx', mergedDictHeadings)
+
+
+
+
+
+
+
+
 
 lenMergedPostBrandNew = len(mergedDict)
 
