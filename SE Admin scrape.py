@@ -86,12 +86,12 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
     SOs = int(valueList[9])
     if completes == 0 | SOs == 0 | QFs == 0:
         incidence = 0
-        QFIncidence = 0
+        QFincidence = 0
     else:
         incidence = (completes / (completes + SOs))
-        QFIncidence = (completes / (completes + SOs + QFs))
+        QFincidence = (completes / (completes + SOs + QFs))
     newList.append(incidence)
-    newList.append(QFIncidence)
+    newList.append(QFincidence)
     #logging.debug('newList is:',newList)
     #logging.debug('valueList is',valueList[0:12])
     #logging.debug('{} C / {} C + {} SOs + {} QFs = {} IR.'.format(completes,completes,SOs,QFs,incidence))
@@ -288,7 +288,7 @@ def dictCreator(valueList):   #this function takes in a MO from the regex and cr
     SOs = int(valueList[9])
     if completes == 0:
         incidence = 0
-        QFIncidence = 0
+        QFincidence = 0
     else:
         try:
             incidence = (completes / (completes + SOs))
@@ -296,12 +296,12 @@ def dictCreator(valueList):   #this function takes in a MO from the regex and cr
             #print ('an exception occured: ', err)
             incidence = 0
         try:
-            QFIncidence = (completes / (completes + SOs + QFs))
+            QFincidence = (completes / (completes + SOs + QFs))
         except Exception as err2:
             # print('an exception occured:',err2)
-            QFIncidence = 0
+            QFincidence = 0
     newDict.setdefault('incidence', incidence)
-    newDict.setdefault('QFincidence', QFIncidence)
+    newDict.setdefault('QFincidence', QFincidence)
     return newDict
 
 
@@ -328,14 +328,11 @@ moNew = process_soup(exampleNewSoup)
 latestDict = create_masterDict(moNew)
 # excel_export_dict(latestDict, 'admin_dict2.xlsx')
 
-
-
-#now I need to create dictionary with old data, new data and the differences between the two
+#now I need to create dictionary with old and new data and ultimately show the differences between the two
 
 # Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
 # dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
 # 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'excelToDictConverter'
-
 
 def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
     logging.debug('Now attempting to read-in excel data to create dict')
@@ -354,99 +351,81 @@ def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename 
         dict.setdefault(key, value)
     return dict
 
-
 oldMap = excelToDictConverter('mapping.xlsx',3,17,1,3)
 newMap = excelToDictConverter('mapping.xlsx',3,17,4,6)
 
-# print('Now printing old Mapping Dict from function')
-# pprint.pprint(oldMap)
-
-# print('Now printing new Mapping Dict from function')
-# pprint.pprint(newMap)
-
 # now I need to create a new dict that contains all the info - new, old and dynamically created, and then export this to excel (perhaps excluding unchanged rows), then have this emailed each morning to KP/JW
+# first create dict containing old projects, using modified headings/keys
 
-mergedDict = {}
-# mergedHeadingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes_old','Completes_new','Completes_diff','Screen Outs_old','Screen Outs_new','Screen Outs_diff','Quota Fulls_old','Quota Fulls_new','Quota Fulls_diff','Live on site', 'incidence', 'incidence_latest', 'QFincidence', 'QFincidence_latest']
+def createMergedDictWithOldData(oldDataDict, oldDataMappingDict):
+    merged = {}
+    for k, v in oldDataDict.items():
+        nestedDict = {}  # blank dict which we will add to mergedDict at the end of each loop
+        for nk, nv in v.items():
+            # print(nk, nv)
+            equiv = oldDataMappingDict.get(nk)
+            if equiv != nk:
+                # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
+                nestedDict.setdefault(equiv, nv)
+            else:
+                # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
+                nestedDict.setdefault(nk, nv)
+        merged.setdefault(k, nestedDict)
+    return merged
 
-# first add old projects, using modified headings/keys
-# let's have a look at the old dict
+mergedDict = createMergedDictWithOldData(originalDict, oldMap)
 
-# logging.debug('Now printing Original dict to have a look as a starting point')
-# pprint.pprint(originalDict)
-
-for k, v in originalDict.items():
-    nestedDict = {}  # blank dict which we will add to mergedDict at the end of each loop
-    for nk, nv in v.items():
-        # print(nk, nv)
-        equiv = oldMap.get(nk)
-        if equiv != nk:
-            # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
-            nestedDict.setdefault(equiv, nv)
+# now add all the new data, bearing in mind that the project may or may not already exist in mergedDict
+def addNewData(newDataDict, mergedDataDict, newDataMappingDict):
+    for k, v in newDataDict.items():
+        nestedDict = {} # blank dict which we will add to mergedDict at the end of each loop
+        if k not in mergedDataDict.keys():   # if a totally new project
+            for nk, nv in v.items():    # loop through the keys and values of the project
+                # print(nk, nv)
+                equiv = newDataMappingDict.get(nk)
+                nestedDict.setdefault(equiv, nv)
+                nestedDict.setdefault('Completes_Original', 0)
+                nestedDict.setdefault('Screen Outs_Original', 0)
+                nestedDict.setdefault('Quota Fulls_Original', 0)
         else:
-            # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
-            nestedDict.setdefault(nk, nv)
-    mergedDict.setdefault(k, nestedDict)
+            # print(f'{k} found in mergedDict.keys, attempting to add to it')
+            for nk, nv in v.items():    # loop through the keys and values of the project
+                # print(nk, nv)
+                equiv = newDataMappingDict.get(nk)
+                if equiv not in mergedDataDict[k].keys():
+                    # print(f'adding to {k}: {equiv} = {nv}')
+                    mergedDataDict[k][equiv] = nv
 
-# logging.debug('Printing mergedDict which now should contain all the old data, but under appropriate headings')
-# pprint.pprint(mergedDict)
+        mergedDataDict.setdefault(k, nestedDict)
 
-lenOriginalDict = len(originalDict)
-lenMergedPostOld = len(mergedDict)
+addNewData(latestDict, mergedDict, newMap)
 
-
-# ok that worked, now to add all the new data, bearing in mind that the project may or may not already exist in mergedDict
-
-for k, v in latestDict.items():
-    nestedDict = {} # blank dict which we will add to mergedDict at the end of each loop
-    if k not in mergedDict.keys():   # if a totally new project
-        for nk, nv in v.items():    # loop through the keys and values of the project
-            # print(nk, nv)
-            equiv = newMap.get(nk)
-            nestedDict.setdefault(equiv, nv)
-            nestedDict.setdefault('Completes_Original', 0)
-            nestedDict.setdefault('Screen Outs_Original', 0)
-            nestedDict.setdefault('Quota Fulls_Original', 0)
-    else:
-        # print(f'{k} found in mergedDict.keys, attempting to add to it')
-        for nk, nv in v.items():    # loop through the keys and values of the project
-            # print(nk, nv)
-            equiv = newMap.get(nk)
-            if equiv not in mergedDict[k].keys():
-                # print(f'adding to {k}: {equiv} = {nv}')
-                mergedDict[k][equiv] = nv
-
-    mergedDict.setdefault(k, nestedDict)
-
-
-
-# now let's add the formula-calculated fields within each dict, starting with one as an example ('P-44868')
-
-for k, v in mergedDict.items():
-    c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
-    v['Completes_gap'] = c_gap
-    # print(f'Completes Gap for {k} is {c_gap}')
-    s_gap = int(v['Screen Outs_Revised']) - int(v['Screen Outs_Original'])
-    v['Screen Outs_gap'] = s_gap
-    # print(f'Screen Outs Gap for {k} is {s_gap}')
-    q_gap = int(v['Quota Fulls_Revised']) - int(v['Quota Fulls_Original'])
-    v['Quota Fulls_gap'] = q_gap
-    # print(f'Quota Fulls Gap for {k} is {q_gap}')
-    try:
-        oIR = (c_gap / (c_gap + s_gap))
-        v['incidence_overnight'] = oIR
-    except Exception as err:
-        #print ('an exception occured: ', err)
-        oIR = 0
-        v['incidence_overnight'] = oIR
-    try:
-        oQFIR = (c_gap / (c_gap + s_gap + q_gap))
-        v['QFincidence_overnight'] = oQFIR
-    except Exception as err:
-        #print ('an exception occured: ', err)
-        oQFIR = 0
-        v['QFincidence_overnight'] = oQFIR
-
+# now let's add the formula-calculated fields within each dict
+def dynamicFieldAdder(dict):  #add the dynamic fields (gaps, overnight) to mergedDict
+    for k, v in dict.items():
+        c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
+        v['Completes_gap'] = c_gap
+        # print(f'Completes Gap for {k} is {c_gap}')
+        s_gap = int(v['Screen Outs_Revised']) - int(v['Screen Outs_Original'])
+        v['Screen Outs_gap'] = s_gap
+        # print(f'Screen Outs Gap for {k} is {s_gap}')
+        q_gap = int(v['Quota Fulls_Revised']) - int(v['Quota Fulls_Original'])
+        v['Quota Fulls_gap'] = q_gap
+        # print(f'Quota Fulls Gap for {k} is {q_gap}')
+        try:
+            oIR = (c_gap / (c_gap + s_gap))
+            v['incidence_overnight'] = oIR
+        except Exception as err:
+            #print ('an exception occured: ', err)
+            oIR = 0
+            v['incidence_overnight'] = oIR
+        try:
+            oQFIR = (c_gap / (c_gap + s_gap + q_gap))
+            v['QFincidence_overnight'] = oQFIR
+        except Exception as err:
+            #print ('an exception occured: ', err)
+            oQFIR = 0
+            v['QFincidence_overnight'] = oQFIR
 
 mergedDictHeadings = ['URL',
 'Alias',
@@ -469,14 +448,12 @@ mergedDictHeadings = ['URL',
 'incidence',
 'incidence_overnight',
 'QFincidence',
-'Qfincidence_overnight',
+'QFincidence_overnight',
 ]
 
+dynamicFieldAdder(mergedDict) #add the dynamic fields (gaps, overnight) to mergedDict
 
-# now attempting excel export function
-
-
-def excel_export_mergedDict(dict, filename, headings):     #### Modifying excel_export list fn to work with master_dict  #####
+def excel_export_mergedDict(dict, filename, headings):     #export merged dict to excel
     logging.debug('Attempting to export mergedDict to excel')
     wb = openpyxl.Workbook()  # create excel workbook object
     wb.save(filename)  # save workbook
@@ -490,14 +467,10 @@ def excel_export_mergedDict(dict, filename, headings):     #### Modifying excel_
         cell.value = headings[column]
     make_bold(sheet, wb, sheet['A1':'V1'])    #Calls the make_bold function on first row of excel sheet
 
-    print('populating mergedDict xls')
-    #this bit then populates the rest of the sheet with the mergedDict content
+     #this bit then populates the rest of the sheet with the mergedDict content
     for row, item_tuple in enumerate(dict.items(), 2):
-        # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
         for column, heading in enumerate(headings, 1):
-            # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
-            print(f'row {row} column {column}')
             v = item_tuple[1].get(heading)
             try:
                 v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
@@ -506,49 +479,33 @@ def excel_export_mergedDict(dict, filename, headings):     #### Modifying excel_
             except TypeError:
                 pass
             cell.value = v
-            print(f'dict field {heading} cell value {v}')
             if (column == 19) | (column == 20) | (column == 21) | (column == 22):  # for all cells in these columns
                 cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
 
     wb.save(filename)  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
 
-
-
 excel_export_mergedDict(mergedDict, 'mergedDict.xlsx', mergedDictHeadings) # excel export of mergedDict
 
+# now I need to create a more readable excel export only containing pertinent info / projects
 
 
 
-lenMergedPostBrandNew = len(mergedDict)
 
 
 
-# logging.debug('Printing mergedDict which now should contain all the old and new data')
-# pprint.pprint(mergedDict)
 
 
 
-# print('here are the various file lengths for troubleshooting:')
-# print(f'len originalDict is {lenOriginalDict}')
-# print(f'len of mergedDict after adding old data is {lenMergedPostOld}')
-# print(f'len of mergedDict after adding brand new data is {lenMergedPostBrandNew}')
+
+
+
+
+
 
 
 
 # moNew = process_soup(exampleNewSoup)
-
-
-
-
-
-
-
-
-
-
-
-
 
 '''
 ### This is where the levers get pulled.
