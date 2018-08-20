@@ -520,12 +520,51 @@ changesDictHeadingsOfInterest = [
 
 excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfInterest) # excel export of changesDict using columns of interest only
 
-# now I've got the report ready I need to work out how I want to store data. Could stash in an xls/database on my home PC rather than have to run a program around the clock.
+# now I've got the report ready I need to work out how I want to store data. Could stash in an xls/database on my home PC
 # looking into standards to see how others would do this - perhaps with a cloud database
 # report could have 'last run date/time'
 
+# STEPS IN LOOP
+# import old data from xls, store in dict
+    # xls will be a merged file so need to write function to scrape merged xls
+# download new data
+# save new data to 'data' xls, overwriting old data
+# merge, create report, send email
 
 
+def oldDataExcelToDictImporter(excel_filename,r1, r2, c1, c2): # given excel filename, creates a dictionary converting the table into key-value pairs
+    logging.debug('Old data import - now attempting to read-in excel data to create dict')
+    map_wb = openpyxl.load_workbook(excel_filename)
+    map_sheet = map_wb.active
+    dict = {}
+    for row in range(r1,r2):
+        for column in range(c1,c2):
+            map_cell = map_sheet.cell(row = row, column = column)
+            v = map_cell.value
+            #print(f'row is {row}. Column is {column}, value is {v}')
+            if column == c1:
+                key = v
+            else:
+                value = v
+        dict.setdefault(key, value)
+    return dict
+
+
+def columnCounter(xls_filename): #checks row 1 and counts how many cells have data, therefore how many columns in xls
+    logging.debug('Counting columns in xls')
+    old_data_wb = openpyxl.load_workbook(xls_filename)
+    old_data_sheet = old_data_wb.active
+    cols = 1
+    while 1:
+        check_cell = old_data_sheet.cell(row = 1, column = cols)
+        v = check_cell.value
+        if v != None:
+            cols += 1
+        else:
+             break
+    return cols
+
+num_of_cols = columnCounter('data.xlsx')
 
 
 # moNew = process_soup(exampleNewSoup)
