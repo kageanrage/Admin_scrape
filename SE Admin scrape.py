@@ -4,7 +4,7 @@ logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - 
 
 logging.debug('Importing modules')
 import bs4,re, openpyxl, os, sqlite3, requests, time, smtplib, pprint
-from openpyxl.styles import Font, NamedStyle
+from openpyxl.styles import Font, NamedStyle, PatternFill
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from config import Config   # this imports the config file where the private data sits
@@ -467,6 +467,8 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
         cell.value = headings[column]
     make_bold(sheet, wb, sheet['A1':'V1'])    #Calls the make_bold function on first row of excel sheet
 
+    percentageHeadings = ['incidence', 'incidence_overnight', 'QFincidence', 'QFincidence_overnight',]
+
      #this bit then populates the rest of the sheet with the mergedDict content
     for row, item_tuple in enumerate(dict.items(), 2):
         for column, heading in enumerate(headings, 1):
@@ -479,27 +481,48 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
             except TypeError:
                 pass
             cell.value = v
-            if (column == 19) | (column == 20) | (column == 21) | (column == 22):  # for all cells in these columns
+            if heading in percentageHeadings:  # for all cells with headings that should have % data
                 cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
-
-    wb.save(filename)  # save workbook as admin.xlsx
+            if heading == 'Completes_gap':
+                light_blue = 'A9CCE3'
+                cell.fill = PatternFill("solid", fgColor=light_blue)
+            if (heading == 'Screen Outs_gap') | (heading == 'Quota Fulls_gap'):
+                orange = 'F8C471'
+                cell.fill = PatternFill("solid", fgColor=orange)
+    wb.save(filename)  # save workbook with given filename
     logging.debug('Excel workbook completed and saved')
 
 excel_export_mergedDict(mergedDict, 'mergedDict.xlsx', mergedDictHeadings) # excel export of mergedDict
 
+
 # now I need to create a more readable excel export only containing pertinent info / projects
 
+# If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
 
 
+def changesDictCreator(largeDict):
+    my_dict = {}
+    for k, v in largeDict.items():
+        if v['Completes_gap'] > 0 or v['Screen Outs_gap'] > 0 or v['Quota Fulls_gap'] > 0:
+            my_dict.setdefault(k, v)
+    return my_dict
 
 
+changesDict = changesDictCreator(mergedDict)
+
+# only certain headings are of interest in the new 'changes' excel export, they are in this list
+changesDictHeadingsOfInterest = [
+'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
+    'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
+    'Quota Fulls_Revised','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
+]
 
 
+excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfInterest) # excel export of changesDict using columns of interest only
 
-
-
-
-
+# now I've got the report ready I need to work out how I want to store data. Could stash in an xls/database on my home PC rather than have to run a program around the clock.
+# looking into standards to see how others would do this - perhaps with a cloud database
+# report could have 'last run date/time'
 
 
 
