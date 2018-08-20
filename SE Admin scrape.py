@@ -532,21 +532,23 @@ excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfIn
 # merge, create report, send email
 
 
-def oldDataExcelToDictImporter(excel_filename,r1, r2, c1, c2): # given excel filename, creates a dictionary converting the table into key-value pairs
+def oldDataExcelToDictImporter(excel_filename): # given excel filename, creates a dictionary converting the table into key-value pairs
     logging.debug('Old data import - now attempting to read-in excel data to create dict')
-    map_wb = openpyxl.load_workbook(excel_filename)
-    map_sheet = map_wb.active
+    old_wb = openpyxl.load_workbook(excel_filename)
+    old_sheet = old_wb.active
     dict = {}
-    for row in range(r1,r2):
-        for column in range(c1,c2):
-            map_cell = map_sheet.cell(row = row, column = column)
-            v = map_cell.value
-            #print(f'row is {row}. Column is {column}, value is {v}')
-            if column == c1:
-                key = v
-            else:
-                value = v
-        dict.setdefault(key, value)
+    num_of_cols = columnCounter(excel_filename)
+    for row in range(1,len(mergedDict)):
+        for column in range(1,num_of_cols):
+            old_cell = old_sheet.cell(row = row, column = column)
+            v = old_cell.value
+            print(f'row is {row}. Column is {column}, value is {v}')
+            # NOW NEED TO ADD KEY AND VALUE TO DICT
+            #if column == c1:
+            #    key = v
+            #else:
+            #    value = v
+        #dict.setdefault(key, value)
     return dict
 
 
@@ -564,7 +566,8 @@ def columnCounter(xls_filename): #checks row 1 and counts how many cells have da
              break
     return cols
 
-num_of_cols = columnCounter('data.xlsx')
+
+oldDataExcelToDictImporter('data.xlsx')
 
 
 # moNew = process_soup(exampleNewSoup)
