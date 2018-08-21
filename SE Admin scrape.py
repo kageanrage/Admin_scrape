@@ -540,15 +540,13 @@ def oldDataExcelToDictImporter(excel_filename): # given excel filename, creates 
     headersDict = excelHeadingsGrabber(excel_filename)
     num_of_cols = columnCounter(excel_filename)
     num_of_rows = rowCounter(excel_filename)
-    lenOfmergedDict = len(mergedDict)
-    logging.debug(f'Should be same: {num_of_rows}, and {lenOfmergedDict}')
     for k, v in headersDict.items():
         if v == 'Project number':
             projectNumberColumn = k
             logging.debug(f'P- number is in column {projectNumberColumn}')
-    for row in range(2,num_of_rows): # TODO: need to calculate #rows via a function, not relying on len of mergedDict
+    for row in range(2,num_of_rows+1): # TODO: need to calculate #rows via a function, not relying on len of mergedDict
         nestedDict = {}
-        for column in range(1,num_of_cols):
+        for column in range(1,num_of_cols+1):
             cell = sheet.cell(row = row, column = column)
             v = cell.value
             # print(f'row is {row}. Column is {column}, value is {v}')
@@ -610,7 +608,10 @@ def excelHeadingsGrabber(xls_filename): # checks row 1 of xls and returns a dict
     return dic
 
 
-# importedDict = oldDataExcelToDictImporter('data.xlsx')
+importedDict = oldDataExcelToDictImporter('data.xlsx')  # importing the excel (old data) to a dict...
+
+excel_export_mergedDict(importedDict, 'exportedDict.xlsx', mergedDictHeadings) # .. then exporting that to prove identical
+
 
 
 # moNew = process_soup(exampleNewSoup)
