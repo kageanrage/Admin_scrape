@@ -510,6 +510,24 @@ def changesDictCreator(largeDict):
 
 changesDict = changesDictCreator(mergedDict)
 
+# this small section shows there must be a problem with the regex confusing Alias with project name, particularly
+# where there are no P-numbers. Need to look into this further, or alternatively, restrict data analysis to the
+# newest 50 projects
+
+print('now printing changesDict')
+pprint.pprint(changesDict['19422'])
+
+print('now printing mergedDict')
+pprint.pprint(mergedDict['19422'])
+
+print('now printing latestDict')
+pprint.pprint(latestDict['19422'])
+
+print('now printing originalDict')
+pprint.pprint(originalDict['19422'])
+
+
+
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
 changesDictHeadingsOfInterest = [
 'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
@@ -587,7 +605,6 @@ def rowCounter(xls_filename): #checks column 1 and counts how many cells have da
         else:    # if no data in the cell, then that's the last row, so break
              break
     return int(rows)-1 # need to be minus one because it increments rows, then realises it's an empty cell
-
 
 
 
