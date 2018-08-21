@@ -534,40 +534,66 @@ excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfIn
 
 def oldDataExcelToDictImporter(excel_filename): # given excel filename, creates a dictionary converting the table into key-value pairs
     logging.debug('Old data import - now attempting to read-in excel data to create dict')
-    old_wb = openpyxl.load_workbook(excel_filename)
-    old_sheet = old_wb.active
+    wb = openpyxl.load_workbook(excel_filename)
+    sheet = wb.active
     dict = {}
+    headersDict = excelHeadingsGrabber(excel_filename)
     num_of_cols = columnCounter(excel_filename)
-    for row in range(1,len(mergedDict)):
+    for k, v in headersDict.items():
+        if v == 'Project number':
+            projectNumberColumn = k
+            logging.debug(f'P- number is in column {projectNumberColumn}')
+    for row in range(2,len(mergedDict)): # TODO: need to calculate #rows via a function, not relying on len of mergedDict
+        nestedDict = {}
         for column in range(1,num_of_cols):
-            old_cell = old_sheet.cell(row = row, column = column)
-            v = old_cell.value
+            cell = sheet.cell(row = row, column = column)
+            v = cell.value
             print(f'row is {row}. Column is {column}, value is {v}')
-            # NOW NEED TO ADD KEY AND VALUE TO DICT
-            #if column == c1:
-            #    key = v
-            #else:
-            #    value = v
-        #dict.setdefault(key, value)
+            nestedKey = headersDict[column]
+            nestedVal = v
+            nestedDict.setdefault(nestedKey, nestedVal)
+            if column == projectNumberColumn:
+                jobNumber = v
+        dict.setdefault(jobNumber, nestedDict)
     return dict
 
 
 def columnCounter(xls_filename): #checks row 1 and counts how many cells have data, therefore how many columns in xls
     logging.debug('Counting columns in xls')
-    old_data_wb = openpyxl.load_workbook(xls_filename)
-    old_data_sheet = old_data_wb.active
-    cols = 1
+    wb = openpyxl.load_workbook(xls_filename)
+    sheet = wb.active
+    cols = 1 # start from 1st column
     while 1:
-        check_cell = old_data_sheet.cell(row = 1, column = cols)
+        check_cell = sheet.cell(row = 1, column = cols)
         v = check_cell.value
-        if v != None:
-            cols += 1
-        else:
+        if v != None: #if there is data in the cell
+            cols += 1 # check the next column along
+        else:    # if no data in the cell, then that's the last column, so break
              break
     return cols
 
 
-oldDataExcelToDictImporter('data.xlsx')
+def excelHeadingsGrabber(xls_filename): # checks row 1 of xls and returns a dictionary showing col# & heading
+    logging.debug('excelHeadingsGrabber - establishing headings/columns dict')
+    wb = openpyxl.load_workbook(xls_filename)
+    sheet = wb.active
+    cols = 1
+    dic = {} # start from 1st column
+    while 1:
+        check_cell = sheet.cell(row = 1, column = cols)
+        v = check_cell.value
+        if v != None: #if there is data in the cell
+            dic.setdefault(cols, v)
+            cols += 1 # check the next column along
+        else:    # if no data in the cell, then that's the last column, so break
+             break
+    return dic
+
+
+# headers = excelHeadingsGrabber('data.xlsx')
+
+
+importedDict = oldDataExcelToDictImporter('data.xlsx')
 
 
 # moNew = process_soup(exampleNewSoup)
