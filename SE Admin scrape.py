@@ -670,14 +670,15 @@ newest_dict = create_masterDict(mo_newest)
 
 
 # logging.debug('Now exporting newest dict')
-excel_export_dict(newest_dict, 'newest.xlsx')
+excel_export_dict(original_dict, 'original.xlsx')
 
 # regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
 # project name and alias were switched, now fixed
 # realised that not all projects in the newest example html (dated in Aug-18) are showing up in the 'newest' excel export so need to
 # troubleshoot that next.
 # printing mo_newest shows these same jobs are missing so must be a regex issue
-
+# fixed it in the regex
+# now though mo_original projects are not showing up so I'm troubleshooting there in the regex software using file 'original vs html'
 
 # pprint.pprint(newest_dict['P-45918'])
 
