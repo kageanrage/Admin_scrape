@@ -115,7 +115,7 @@ def list_creator(valueList):   #this function takes in a MO from the regex and c
 
 def create_masterList(mo):     #creates a list of all projects in given MO, first row will be headings
     #global masterList
-    master_list = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
+    master_list = [['URL', 'Survey name', 'Alias', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
                    'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']]
     for i in range(0, len(mo) - 1):
         master_list.append(list_creator(mo[i]))
@@ -197,13 +197,13 @@ def export_to_sqlite(list_of_projects): # Export to SQLite
 
     def create_table():
         c.execute(
-            'CREATE TABLE IF NOT EXISTS surveysTable(URL TEXT, Alias TEXT, SurveyName TEXT, ProjectNumber TEXT, ClientName TEXT, junk TEXT, ExpectedLOI REAL, ActualLOI REAL, Completes REAL, ScreenOuts REAL, QuotaFulls REAL, LiveOnSite TEXT, IncidenceRate REAL, QFIR REAL)')  # creates the table. CAPS for pure SQL, regular casing otherwise.
+            'CREATE TABLE IF NOT EXISTS surveysTable(URL TEXT, SurveyName TEXT, Alias TEXT, ProjectNumber TEXT, ClientName TEXT, junk TEXT, ExpectedLOI REAL, ActualLOI REAL, Completes REAL, ScreenOuts REAL, QuotaFulls REAL, LiveOnSite TEXT, IncidenceRate REAL, QFIR REAL)')  # creates the table. CAPS for pure SQL, regular casing otherwise.
 
     def dynamic_data_entry(
             list):  # at the moment if I pass it an ordered list, it will assign that list to the headings. If I convert dictionariesList into a list of lists, this will be simple.
         # Trying to do a lot on this next line, something is up with it
         c.execute(
-            "INSERT INTO surveysTable (URL, Alias, SurveyName, ProjectNumber, ClientName, junk, ExpectedLOI, ActualLOI, Completes, ScreenOuts, QuotaFulls, LiveOnSite, IncidenceRate, QFIR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO surveysTable (URL, SurveyName, Alias, ProjectNumber, ClientName, junk, ExpectedLOI, ActualLOI, Completes, ScreenOuts, QuotaFulls, LiveOnSite, IncidenceRate, QFIR) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (list[0], list[1], list[2], list[3], list[4], list[5], list[6], list[7], list[8], list[9], list[10],
              list[11], list[12], list[13]))
         conn.commit()  # saves to DB. Don't want to close the connection til I'm done using SQL in the program as open/closing wastes resources
@@ -256,7 +256,7 @@ def email_body_content(list_of_newbies):
 
 
 def dict_creator(value_list):   # this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
-    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site']
+    headings = ['URL','Survey name','Alias','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site']
     new_dict = {}
     for i in range(0,len(headings)):
         new_dict.setdefault(headings[i], value_list[i])
@@ -299,7 +299,7 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
     wb.save(filename)  # save workbook
     sheet = wb.active  # create sheet object as the Active sheet from the workbook object
     wb.save(filename)  # save workbook
-    headings_list = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
+    headings_list = ['URL','Survey name','Alias','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
 
     # this bit populates and emboldens the first row
     row = 1
@@ -452,8 +452,8 @@ def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to mer
 
 
 merged_dict_headings = ['URL',
-'Alias',
 'Survey name',
+'Alias',
 'Project number',
 'Client name',
 'junk',
@@ -670,13 +670,12 @@ excel_export_dict(newest_dict, 'newest.xlsx')
 
 # regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
 # project name is not due to regex as I have tested and it is accurate, must be alias getting assigned as 'project name' in a dict.
-# need to scrutinise one of the affected projects to see what's up
+# need to scrutinise one of the affected projects to see what's up.
+# It seems that Survey Name and Alias have been switched across the board - the data for one is assigned to the heading of the other
 
+pprint.pprint(merged_dict['P-44633'])
 
-
-
-
-
+pprint.pprint(original_dict['P-44160'])
 # mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
 
 
