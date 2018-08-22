@@ -26,6 +26,8 @@ if os.getcwd() == cfg.laptop_dir:   # Using Laptop
     example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
     example_old_HTML_file = open(cfg.laptop_ex_old_html_file)
     example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_newest_HTML_file = open(cfg.laptop_ex_newest_html_file)
+    example_newest_soup = bs4.BeautifulSoup(example_newest_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     logging.debug('Desktop PC detected')
@@ -56,14 +58,18 @@ def download_soup():
     return soup
 
 
-def process_soup(soup):
+def process_soup(soup, string_txt_filename):
     logging.debug('Starting table isolation')
     table_only = soup.select(
         'table')  # isolates the table (which is the only bit I need) from the HTML. Type is list, was expecting BS4 object
     #logging.debug('table_only looks like this:\n\n\n',table_only)
     logging.debug('Converting bs4 object into string')
     table_string = str(table_only)  # converts the bs4 object to a string
-    #logging.debug('table_string looks like this:\n\n\n',table_string)
+    logging.debug('writing table_string_file.txt')
+    table_string_file = open(string_txt_filename, 'w')
+    table_string_file.write(table_string)
+    table_string_file.close()
+    # logging.debug('table_string looks like this:\n\n\n',table_string)
     # May not be able to isolate further within BS4 so switching to regex to parse.
     # TO DO: create a regex to identify each project on the Admin page
     logging.debug('Defining RegEx')
@@ -325,11 +331,11 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
 #TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
 #First I want to change my data structure back to dictionaries, so that new and old dictionaries can be combined/compared
 
-mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
 original_dict = create_masterDict(mo_original)
 
 # now I can create a dictionary of the new content
-mo_new = process_soup(example_new_soup)
+mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
 latest_dict = create_masterDict(mo_new)
 # excel_export_dict(latest_dict, 'admin_dict2.xlsx')
 
@@ -643,16 +649,29 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 # way to do this? Initial thinking is to make a dict with all 3 sets of data in it and then use what we need from there
 
 # First I'll need to import the current merged_dict into a dictionary
-# but before I do that, it seems my QFIR has gone missing so I will troubleshoot that
+
+# so, mergedDict already exists and contains the original and revised data
+# let's add to that the newest data
+
+
+
+mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
+newest_dict = create_masterDict(mo_newest)
+# pprint.pprint(newest_dict)
+
+
+
+# logging.debug('Now exporting newest dict')
+excel_export_dict(newest_dict, 'newest.xlsx')
+
+# when I look at this dict I see that the regex is not working properly anymore for the early fields (alias / project name/number) so
+# I need to do a detailed examination of the regex, work out why it's not working, piece by piece, laid out in excel
 
 
 
 
 
-
-
-
-# mo_new = process_soup(example_new_soup)
+# mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
 
 
 # AUG-18 loop
@@ -662,12 +681,12 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 
 """
 # newSoup = download_soup()     #toggle off for test mode
-mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
 #logging.debug('example_soup looks like this:\n\n',example_soup)
 original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
     #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(example_new_soup)   # parameter can be newSoup for live or example_new_soup for test mode
+    mo2 = process_soup(example_new_soup, 'mo2_string.txt')   # parameter can be newSoup for live or example_new_soup for test mode
     latest10 = create_top_list(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
@@ -689,12 +708,12 @@ while 1:     #this is the loop that endlessly repeats
 # First we set up the original variables, so this happens outside of the while loop as a one-off
 
 # newSoup = download_soup()     #toggle off for test mode
-mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
 #logging.debug('example_soup looks like this:\n\n',example_soup)
 original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
     #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(example_new_soup)   # parameter can be newSoup for live or example_new_soup for test mode
+    mo2 = process_soup(example_new_soup, 'mo2_string.txt')   # parameter can be newSoup for live or example_new_soup for test mode
     latest10 = create_top_list(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
@@ -750,8 +769,8 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 
 
 # logging.debug('Example sequence')
-# exampleOldMo = process_soup(example_old_soup)
-# exampleNewMo = process_soup(example_new_soup)
+# exampleOldMo = process_soup(example_old_soup, 'mo_old_string.txt')
+# exampleNewMo = process_soup(example_new_soup, 'mo_new_string.txt')
 # exampleOriginal10 = create_top_list(exampleOldMo, 10)   #match object, desired number of projects in list
 # print('ExampleOriginal10:\n', exampleOriginal10,'\n')
 # exampleLatest10 = create_top_list(exampleNewMo, 10)   #match object, desired number of projects in list
