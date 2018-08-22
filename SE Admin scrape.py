@@ -60,6 +60,10 @@ def process_soup(soup):
     #logging.debug('tableOnly looks like this:\n\n\n',tableOnly)
     logging.debug('Converting bs4 object into string')
     tableString = str(tableOnly)  # converts the bs4 object to a string
+    logging.debug('writing tableString to txt file')
+    tableStringFile = open('tstring.txt', 'w')
+    tableStringFile.write(tableString)
+    tableStringFile.close()
     #logging.debug('tableString looks like this:\n\n\n',tableString)
     # May not be able to isolate further within BS4 so switching to regex to parse.
     # TO DO: create a regex to identify each project on the Admin page
@@ -510,10 +514,13 @@ def changesDictCreator(largeDict):
 
 changesDict = changesDictCreator(mergedDict)
 
+
+
 # this small section shows there must be a problem with the regex confusing Alias with project name, particularly
 # where there are no P-numbers. Need to look into this further, or alternatively, restrict data analysis to the
 # newest 50 projects
 
+"""
 print('now printing changesDict')
 pprint.pprint(changesDict['19422'])
 
@@ -525,6 +532,8 @@ pprint.pprint(latestDict['19422'])
 
 print('now printing originalDict')
 pprint.pprint(originalDict['19422'])
+
+"""
 
 
 
