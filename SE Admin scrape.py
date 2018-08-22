@@ -1,13 +1,14 @@
-import logging
-logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
-#logging.disable(logging.CRITICAL)     # switches off logging
-
-logging.debug('Importing modules')
 import bs4,re, openpyxl, os, sqlite3, requests, time, smtplib, pprint
 from openpyxl.styles import Font, NamedStyle, PatternFill
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from config import Config   # this imports the config file where the private data sits
+
+import logging
+logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
+# logging.disable(logging.CRITICAL)     # switches off logging
+
+logging.debug('Imported modules')
 
 logging.debug('Start of program')
 logging.debug('Checking if Laptop or Desktop (and opening relevant local HTML files if using test HTML)')
@@ -17,33 +18,34 @@ cfg = Config()      # create an instance of the Config class, essentially brings
 # changes logic depending on if I'm using Laptop or Desktop
 # Example files - using saved HTML in 2 different directories. Toggle on for test mode, or off for live.
 
-if os.getcwd() == cfg.laptop_dir:   #Using Laptop
+if os.getcwd() == cfg.laptop_dir:   # Using Laptop
     logging.debug('Laptop PC detected')
-    localFile = open(cfg.laptop_localfile)
-    exampleSoup = bs4.BeautifulSoup(localFile, "html.parser")  # turns the HTML into a beautiful soup object
-    exampleNewHTMLFile = open(cfg.laptop_ex_html_file)
-    exampleNewSoup = bs4.BeautifulSoup(exampleNewHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
-    exampleOldHTMLFile = open(cfg.laptop_ex_old_html_file)
-    exampleOldSoup = bs4.BeautifulSoup(exampleOldHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
+    local_file = open(cfg.laptop_localfile)
+    example_soup = bs4.BeautifulSoup(local_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_new_HTML_file = open(cfg.laptop_ex_html_file)
+    example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_old_HTML_file = open(cfg.laptop_ex_old_html_file)
+    example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
 
-elif os.getcwd() == cfg.desktop_dir:    #Using Desktop
+elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     logging.debug('Desktop PC detected')
-    localFile = open(cfg.desktop_localfile)
-    exampleSoup = bs4.BeautifulSoup(localFile, "html.parser")  # turns the HTML into a beautiful soup object
-    exampleNewHTMLFile = open(cfg.desktop_ex_html_file)
-    exampleNewSoup = bs4.BeautifulSoup(exampleNewHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
-    exampleOldHTMLFile = open(cfg.desktop_ex_old_html_file)
-    exampleOldSoup = bs4.BeautifulSoup(exampleOldHTMLFile, "html.parser")  # turns the HTML into a beautiful soup object
+    local_file = open(cfg.desktop_localfile)
+    example_soup = bs4.BeautifulSoup(local_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_new_HTML_file = open(cfg.desktop_ex_html_file)
+    example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_old_HTML_file = open(cfg.desktop_ex_old_html_file)
+    example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+
 
 def download_soup():
     chrome_path = r'C:\Program Files\Python37\chromedriver.exe'
     driver = webdriver.Chrome(chrome_path)
-    driver.get(cfg.survey_admin_URL) # load survey admin page
-    emailElem = driver.find_element_by_id('UserName') #enter username & password and submit
-    emailElem.send_keys(cfg.uname)
-    passElem = driver.find_element_by_id('Password')
-    passElem.send_keys(cfg.pwd)
-    passElem.submit()
+    driver.get(cfg.survey_admin_URL)  # load survey admin page
+    email_elem = driver.find_element_by_id('UserName') #enter username & password and submit
+    email_elem.send_keys(cfg.uname)
+    pass_elem = driver.find_element_by_id('Password')
+    pass_elem.send_keys(cfg.pwd)
+    pass_elem.submit()
     time.sleep(5)   # wait 5 seconds to log in
     content = driver.page_source
     soup = bs4.BeautifulSoup(content, "html.parser")
@@ -55,52 +57,48 @@ def download_soup():
 
 def process_soup(soup):
     logging.debug('Starting table isolation')
-    tableOnly = soup.select(
+    table_only = soup.select(
         'table')  # isolates the table (which is the only bit I need) from the HTML. Type is list, was expecting BS4 object
-    #logging.debug('tableOnly looks like this:\n\n\n',tableOnly)
+    #logging.debug('table_only looks like this:\n\n\n',table_only)
     logging.debug('Converting bs4 object into string')
-    tableString = str(tableOnly)  # converts the bs4 object to a string
-    logging.debug('writing tableString to txt file')
-    tableStringFile = open('tstring.txt', 'w')
-    tableStringFile.write(tableString)
-    tableStringFile.close()
-    #logging.debug('tableString looks like this:\n\n\n',tableString)
+    table_string = str(table_only)  # converts the bs4 object to a string
+    #logging.debug('table_string looks like this:\n\n\n',table_string)
     # May not be able to isolate further within BS4 so switching to regex to parse.
     # TO DO: create a regex to identify each project on the Admin page
     logging.debug('Defining RegEx')
-    # projectsRegex = re.compile('<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)')
-    #projectsRegex = re.compile(
+    # projects_regex = re.compile('<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)')
+    #projects_regex = re.compile(
     #    '<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # alternative Regex which incorporates 'True' or 'False' being on site
-    projectsRegex = re.compile(
+    projects_regex = re.compile(
     '<a href="(.{10,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 3rd iteration of regex
     # TO DO: Return all examples of regex findall search
     logging.debug('Conducting regex findall search')
-    mo = projectsRegex.findall(tableString)
+    mo = projects_regex.findall(table_string)
     #print('newly created mo looks like this:\n\n',mo)
     return mo
 
-def listCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
+def list_creator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
     #headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
-    newList = []
+    new_list = []
     #logging.debug('Start of list creation for',valueList[3])
     for i in range(0,12):
-        newList.append(valueList[i])
+        new_list.append(valueList[i])
     completes = int(valueList[8])
-    QFs = int(valueList[10])
-    SOs = int(valueList[9])
-    if completes == 0 | SOs == 0 | QFs == 0:
+    quota_fulls = int(valueList[10])
+    screen_outs = int(valueList[9])
+    if completes == 0 | screen_outs == 0 | quota_fulls == 0:
         incidence = 0
-        QFincidence = 0
+        qf_incidence = 0
     else:
-        incidence = (completes / (completes + SOs))
-        QFincidence = (completes / (completes + SOs + QFs))
-    newList.append(incidence)
-    newList.append(QFincidence)
-    #logging.debug('newList is:',newList)
+        incidence = (completes / (completes + screen_outs))
+        qf_incidence = (completes / (completes + screen_outs + quota_fulls))
+    new_list.append(incidence)
+    new_list.append(qf_incidence)
+    #logging.debug('new_list is:',new_list)
     #logging.debug('valueList is',valueList[0:12])
-    #logging.debug('{} C / {} C + {} SOs + {} QFs = {} IR.'.format(completes,completes,SOs,QFs,incidence))
+    #logging.debug('{} C / {} C + {} screen_outs + {} quota_fulls = {} IR.'.format(completes,completes,screen_outs,quota_fulls,incidence))
     #logging.debug(newDict)
-    return newList
+    return new_list
 
 
 
@@ -112,42 +110,40 @@ def listCreator(valueList):   #this function takes in a MO from the regex and cr
 
 def create_masterList(mo):     #creates a list of all projects in given MO, first row will be headings
     #global masterList
-    mList = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
+    master_list = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
                    'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']]
     for i in range(0, len(mo) - 1):
-        mList.append(listCreator(mo[i]))
-    return mList
+        master_list.append(list_creator(mo[i]))
+    return master_list
 
-def create_topList(mo, num):    #num = how long you want the list to be
-    tList = []
-    # top10List = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
-    #                'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site', 'Incidence Rate', 'QF IR']]
+def create_top_list(mo, num):    #num = how long you want the list to be
+    top_list = []
     for i in range(0, num):
-        tList.append(listCreator(mo[i]))
-    return tList
+        top_list.append(list_creator(mo[i]))
+    return top_list
 
-def new_project_search(newList,oldList):
+def new_project_search(new_list, old_list):
 
     matches = []
     unmatched = []
 
-    for newProject in newList:
-        unmatched.append(newProject[3])   #this should make a list with all the Project numbers in newList
+    for new_project in new_list:
+        unmatched.append(new_project[3])   #this should make a list with all the Project numbers in new_list
 
-    for newProject in newList:
-        for oldProject in oldList:
-            if newProject[3] == oldProject[3]:
-                matches.append(newProject[3])
-                #if newProject[3] not in unmatched:
+    for new_project in new_list:
+        for old_project in old_list:
+            if new_project[3] == old_project[3]:
+                matches.append(new_project[3])
+                #if new_project[3] not in unmatched:
                 #    raise Exception('Project not found in unmatched list, cannot remove')
                 try:
-                    unmatched.remove(newProject[3]) #this should remove all matches so that unmatched is the list of non-matched jobs
+                    unmatched.remove(new_project[3]) #this should remove all matches so that unmatched is the list of non-matched jobs
                 except:
-                    print(newProject[3],'could not be removed')
+                    print(new_project[3],'could not be removed')
                     pass
 
     #print('Unmatched are as follows: ',unmatched)
-    print('List of matched items: ',matches)
+    print('List of matched items: ', matches)
     return(unmatched)
 
 def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
@@ -157,11 +153,11 @@ def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     sheet = wb.active  # create sheet object as the Active sheet from the workbook object
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
     # LIST-BASED POPULATION OF EXCEL SHEET
-    for row, rowData in enumerate(list,
-                                  1):  # where row is a number starting with 1, increasing each loop, and rowData = each masterList item
+    for row, row_data in enumerate(list,
+                                  1):  # where row is a number starting with 1, increasing each loop, and row_data = each masterList item
         for column in range(1, 15):  # where column is a number starting with 1 and ending with 14
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
-            v = rowData[column - 1]
+            v = row_data[column - 1]
             try:
                 v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
             except ValueError:
@@ -181,20 +177,20 @@ def excel_export_dict(dict, filename):     #### Modifying excel_export list fn t
     wb.save(filename)  # save workbook
     sheet = wb.active  # create sheet object as the Active sheet from the workbook object
     wb.save(filename)  # save workbook
-    headingsList = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
+    headings_list = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
     # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
 
     # this bit populates and emboldens the first row
     row = 1
-    for column in range(0,len(headingsList)):
+    for column in range(0,len(headings_list)):
         cell = sheet.cell(row=row, column=column+1)
-        cell.value = headingsList[column]
+        cell.value = headings_list[column]
     make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
 
     #this bit then populates the rest of the sheet with the masterDict content
     for row, item_tuple in enumerate(dict.items(), 2):
         # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
-        for column, heading in enumerate(headingsList, 1):
+        for column, heading in enumerate(headings_list, 1):
             # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
             v = item_tuple[1].get(heading)
@@ -210,16 +206,16 @@ def excel_export_dict(dict, filename):     #### Modifying excel_export list fn t
     logging.debug('Excel workbook completed and saved')
 
 
-def make_bold(sheet, wb, sheetSlice):
+def make_bold(sheet, wb, sheet_slice):
     highlight = NamedStyle(name='highlight')
     highlight.font = Font(bold=True)
     wb.add_named_style(highlight)
-    for row in sheetSlice:  # iterate over rows in slice (seems redundant as only 1 row but apparently necessary)
+    for row in sheet_slice:  # iterate over rows in slice (seems redundant as only 1 row but apparently necessary)
         for cell in row:  # iterate over cells in row
             sheet[cell.coordinate].style = highlight  # add bold to each cell
 
 
-def export_to_sqlite(listOfProjects): # Export to SQLite
+def export_to_sqlite(list_of_projects): # Export to SQLite
     global conn, c
     logging.debug('Initiating SQLite section')
     conn = sqlite3.connect('admin.db')  # define connection - database is created also
@@ -242,7 +238,7 @@ def export_to_sqlite(listOfProjects): # Export to SQLite
     create_table()  # run the function above
 
     logging.debug('Now calling SQLite fn dynamic_data_entry')
-    for list in listOfProjects:
+    for list in list_of_projects:
         dynamic_data_entry(list)  # run the function above
 
     c.close()
@@ -271,10 +267,10 @@ def send_email(user, pwd, recipient, subject, body):
     except:
         print('failed to send mail')
 
-def email_body_content(listOfNewbies):
+def email_body_content(list_of_newbies):
     logging.debug('Initialising email_body_content function')
     body = ''
-    for projectNumber in listOfNewbies:
+    for projectNumber in list_of_newbies:
         for project in latest10:
             if projectNumber in project:
                 #print('Project found:',project)
@@ -282,130 +278,130 @@ def email_body_content(listOfNewbies):
     #print(body)
     return(body)
 
-def dictCreator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
+def dict_creator(value_list):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
     headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
-    newDict = {}
+    new_dict = {}
     for i in range(0,len(headings)):
-        newDict.setdefault(headings[i], valueList[i])
-    completes = int(valueList[8])
-    QFs = int(valueList[10])
-    SOs = int(valueList[9])
+        new_dict.setdefault(headings[i], value_list[i])
+    completes = int(value_list[8])
+    quota_fulls = int(value_list[10])
+    screen_outs = int(value_list[9])
     if completes == 0:
         incidence = 0
-        QFincidence = 0
+        qf_incidence = 0
     else:
         try:
-            incidence = (completes / (completes + SOs))
+            incidence = (completes / (completes + screen_outs))
         except Exception as err:
             #print ('an exception occured: ', err)
             incidence = 0
         try:
-            QFincidence = (completes / (completes + SOs + QFs))
+            qf_incidence = (completes / (completes + screen_outs + quota_fulls))
         except Exception as err2:
             # print('an exception occured:',err2)
-            QFincidence = 0
-    newDict.setdefault('incidence', incidence)
-    newDict.setdefault('QFincidence', QFincidence)
-    return newDict
+            qf_incidence = 0
+    new_dict.setdefault('incidence', incidence)
+    new_dict.setdefault('qf_incidence', qf_incidence)
+    return new_dict
 
 
 def create_masterDict(mo):     #creates a dict of all project dicts in given MO
-    mDict = {}
+    master_dict = {}
     for i in range(0,len(mo)):
-        # logging.debug(f'i is {i}, adding {mo[i][3]} to mDict')
-        mDict.setdefault(mo[i][3],dictCreator(mo[i]))
+        # logging.debug(f'i is {i}, adding {mo[i][3]} to master_dict')
+        master_dict.setdefault(mo[i][3], dict_creator(mo[i]))
     #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
     #for i in range(0, len(mo) - 1):
-    #    mList.append(listCreator(mo[i]))
-    return mDict
+    #    mList.append(list_creator(mo[i]))
+    return master_dict
 
 
 #AUG-2018 - this is my current working area
 #TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
 #First I want to change my data structure back to dictionaries, so that new and old dictionaries can be combined/compared
 
-moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
-originalDict = create_masterDict(moOriginal)
+mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+original_dict = create_masterDict(mo_original)
 
 # now I can create a dictionary of the new content
-moNew = process_soup(exampleNewSoup)
-latestDict = create_masterDict(moNew)
-# excel_export_dict(latestDict, 'admin_dict2.xlsx')
+mo_new = process_soup(example_new_soup)
+latest_dict = create_masterDict(mo_new)
+# excel_export_dict(latest_dict, 'admin_dict2.xlsx')
 
 #now I need to create dictionary with old and new data and ultimately show the differences between the two
 
 # Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
 # dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
-# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'excelToDictConverter'
+# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'excel_to_dict_converter'
 
-def excelToDictConverter(excel_filename,r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
-    logging.debug('Now attempting to read-in excel data to create dict')
-    map_wb = openpyxl.load_workbook(excel_filename)
-    map_sheet = map_wb.active
-    dict = {}
+def excel_to_dict_converter(excel_filename, r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
+    logging.debug('Now attempting to read-in excel data to create dic')
+    wb = openpyxl.load_workbook(excel_filename)
+    sheet = wb.active
+    dic = {}
     for row in range(r1,r2):
         for column in range(c1,c2):
-            map_cell = map_sheet.cell(row = row, column = column)
-            v = map_cell.value
+            cell = sheet.cell(row = row, column = column)
+            v = cell.value
             #print(f'row is {row}. Column is {column}, value is {v}')
             if column == c1:
                 key = v
             else:
                 value = v
-        dict.setdefault(key, value)
-    return dict
+        dic.setdefault(key, value)
+    return dic
 
-oldMap = excelToDictConverter('mapping.xlsx',3,17,1,3)
-newMap = excelToDictConverter('mapping.xlsx',3,17,4,6)
+old_map = excel_to_dict_converter('mapping.xlsx', 3, 17, 1, 3)
+new_map = excel_to_dict_converter('mapping.xlsx', 3, 17, 4, 6)
 
 # now I need to create a new dict that contains all the info - new, old and dynamically created, and then export this to excel (perhaps excluding unchanged rows), then have this emailed each morning to KP/JW
 # first create dict containing old projects, using modified headings/keys
 
-def createMergedDictWithOldData(oldDataDict, oldDataMappingDict):
+def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
     merged = {}
-    for k, v in oldDataDict.items():
-        nestedDict = {}  # blank dict which we will add to mergedDict at the end of each loop
+    for k, v in old_data_dict.items():
+        nested_dict = {}  # blank dict which we will add to merged_dict at the end of each loop
         for nk, nv in v.items():
             # print(nk, nv)
-            equiv = oldDataMappingDict.get(nk)
+            equiv = old_data_mapping_dict.get(nk)
             if equiv != nk:
                 # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
-                nestedDict.setdefault(equiv, nv)
+                nested_dict.setdefault(equiv, nv)
             else:
                 # print(f'project {k} has {nk} same as {equiv} so no re-assignment; equal to {nv}')
-                nestedDict.setdefault(nk, nv)
-        merged.setdefault(k, nestedDict)
+                nested_dict.setdefault(nk, nv)
+        merged.setdefault(k, nested_dict)
     return merged
 
-mergedDict = createMergedDictWithOldData(originalDict, oldMap)
+merged_dict = create_merged_dict_with_old_data(original_dict, old_map)
 
-# now add all the new data, bearing in mind that the project may or may not already exist in mergedDict
-def addNewData(newDataDict, mergedDataDict, newDataMappingDict):
-    for k, v in newDataDict.items():
-        nestedDict = {} # blank dict which we will add to mergedDict at the end of each loop
-        if k not in mergedDataDict.keys():   # if a totally new project
+# now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
+def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
+    for k, v in new_data_dict.items():
+        nested_dict = {} # blank dict which we will add to merged_dict at the end of each loop
+        if k not in merged_data_dict.keys():   # if a totally new project
             for nk, nv in v.items():    # loop through the keys and values of the project
                 # print(nk, nv)
-                equiv = newDataMappingDict.get(nk)
-                nestedDict.setdefault(equiv, nv)
-                nestedDict.setdefault('Completes_Original', 0)
-                nestedDict.setdefault('Screen Outs_Original', 0)
-                nestedDict.setdefault('Quota Fulls_Original', 0)
+                equiv = new_data_mapping_dict.get(nk)
+                nested_dict.setdefault(equiv, nv)
+                nested_dict.setdefault('Completes_Original', 0)
+                nested_dict.setdefault('Screen Outs_Original', 0)
+                nested_dict.setdefault('Quota Fulls_Original', 0)
         else:
-            # print(f'{k} found in mergedDict.keys, attempting to add to it')
+            # print(f'{k} found in merged_dict.keys, attempting to add to it')
             for nk, nv in v.items():    # loop through the keys and values of the project
                 # print(nk, nv)
-                equiv = newDataMappingDict.get(nk)
-                if equiv not in mergedDataDict[k].keys():
+                equiv = new_data_mapping_dict.get(nk)
+                if equiv not in merged_data_dict[k].keys():
                     # print(f'adding to {k}: {equiv} = {nv}')
-                    mergedDataDict[k][equiv] = nv
+                    merged_data_dict[k][equiv] = nv
 
-        mergedDataDict.setdefault(k, nestedDict)
+        merged_data_dict.setdefault(k, nested_dict)
 
-addNewData(latestDict, mergedDict, newMap)
+add_new_data(latest_dict, merged_dict, new_map)
 
 # now let's add the formula-calculated fields within each dict
-def dynamicFieldAdder(dict):  #add the dynamic fields (gaps, overnight) to mergedDict
+def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to merged_dict
     for k, v in dict.items():
         c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
         v['Completes_gap'] = c_gap
@@ -431,7 +427,7 @@ def dynamicFieldAdder(dict):  #add the dynamic fields (gaps, overnight) to merge
             oQFIR = 0
             v['QFincidence_overnight'] = oQFIR
 
-mergedDictHeadings = ['URL',
+merged_dict_headings = ['URL',
 'Alias',
 'Survey name',
 'Project number',
@@ -453,12 +449,12 @@ mergedDictHeadings = ['URL',
 'incidence_overnight',
 'QFincidence',
 'QFincidence_overnight',
-]
+                        ]
 
-dynamicFieldAdder(mergedDict) #add the dynamic fields (gaps, overnight) to mergedDict
+dynamic_field_adder(merged_dict) #add the dynamic fields (gaps, overnight) to merged_dict
 
 def excel_export_mergedDict(dict, filename, headings):     #export merged dict to excel
-    logging.debug('Attempting to export mergedDict to excel')
+    logging.debug('Attempting to export merged_dict to excel')
     wb = openpyxl.Workbook()  # create excel workbook object
     wb.save(filename)  # save workbook
     sheet = wb.active  # create sheet object as the Active sheet from the workbook object
@@ -471,9 +467,9 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
         cell.value = headings[column]
     make_bold(sheet, wb, sheet['A1':'V1'])    #Calls the make_bold function on first row of excel sheet
 
-    percentageHeadings = ['incidence', 'incidence_overnight', 'QFincidence', 'QFincidence_overnight',]
+    percentage_headings = ['incidence', 'incidence_overnight', 'QFincidence', 'QFincidence_overnight',]
 
-     #this bit then populates the rest of the sheet with the mergedDict content
+     #this bit then populates the rest of the sheet with the merged_dict content
     for row, item_tuple in enumerate(dict.items(), 2):
         for column, heading in enumerate(headings, 1):
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
@@ -485,7 +481,7 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
             except TypeError:
                 pass
             cell.value = v
-            if heading in percentageHeadings:  # for all cells with headings that should have % data
+            if heading in percentage_headings:  # for all cells with headings that should have % data
                 cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
             if heading == 'Completes_gap':
                 light_blue = 'A9CCE3'
@@ -496,7 +492,7 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
     wb.save(filename)  # save workbook with given filename
     logging.debug('Excel workbook completed and saved')
 
-excel_export_mergedDict(mergedDict, 'mergedDict.xlsx', mergedDictHeadings) # excel export of mergedDict
+excel_export_mergedDict(merged_dict, 'merged_dict.xlsx', merged_dict_headings) # excel export of merged_dict
 
 
 # now I need to create a more readable excel export only containing pertinent info / projects
@@ -504,48 +500,34 @@ excel_export_mergedDict(mergedDict, 'mergedDict.xlsx', mergedDictHeadings) # exc
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
 
 
-def changesDictCreator(largeDict):
+def changes_dict_creator(large_dict):
     my_dict = {}
-    for k, v in largeDict.items():
+    for k, v in large_dict.items():
         if v['Completes_gap'] > 0 or v['Screen Outs_gap'] > 0 or v['Quota Fulls_gap'] > 0:
             my_dict.setdefault(k, v)
     return my_dict
 
 
-changesDict = changesDictCreator(mergedDict)
+changes_dict = changes_dict_creator(merged_dict)
 
 
 
 # this small section shows there must be a problem with the regex confusing Alias with project name, particularly
 # where there are no P-numbers. Need to look into this further, or alternatively, restrict data analysis to the
-# newest 50 projects
-
-"""
-print('now printing changesDict')
-pprint.pprint(changesDict['19422'])
-
-print('now printing mergedDict')
-pprint.pprint(mergedDict['19422'])
-
-print('now printing latestDict')
-pprint.pprint(latestDict['19422'])
-
-print('now printing originalDict')
-pprint.pprint(originalDict['19422'])
-
-"""
+# newest 50 projects.
+# DECISION - to ignore the issue for now (!) as it only pertains to old projects which should not change in future
 
 
 
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
-changesDictHeadingsOfInterest = [
+changes_dict_headings_of_interest = [
 'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
     'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
     'Quota Fulls_Revised','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
 
 
-excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfInterest) # excel export of changesDict using columns of interest only
+excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest) # excel export of changes_dict using columns of interest only
 
 # now I've got the report ready I need to work out how I want to store data. Could stash in an xls/database on my home PC
 # looking into standards to see how others would do this - perhaps with a cloud database
@@ -559,34 +541,34 @@ excel_export_mergedDict(changesDict, 'changesDict.xlsx', changesDictHeadingsOfIn
 # merge, create report, send email
 
 
-def oldDataExcelToDictImporter(excel_filename): # given excel filename, creates a dictionary converting the table into key-value pairs
-    logging.debug('Old data import - now attempting to read-in excel data to create dict')
+def old_data_excel_to_dict_importer(excel_filename): # given excel filename, creates a dictionary converting the table into key-value pairs
+    logging.debug('Old data import - now attempting to read-in excel data to create dic')
     wb = openpyxl.load_workbook(excel_filename)
     sheet = wb.active
-    dict = {}
-    headersDict = excelHeadingsGrabber(excel_filename)
-    num_of_cols = columnCounter(excel_filename)
-    num_of_rows = rowCounter(excel_filename)
-    for k, v in headersDict.items():
+    dic = {}
+    headers_dict = excel_headings_grabber(excel_filename)
+    num_of_cols = column_counter(excel_filename)
+    num_of_rows = row_counter(excel_filename)
+    for k, v in headers_dict.items():
         if v == 'Project number':
-            projectNumberColumn = k
-            logging.debug(f'P- number is in column {projectNumberColumn}')
-    for row in range(2,num_of_rows+1): # TODO: need to calculate #rows via a function, not relying on len of mergedDict
-        nestedDict = {}
+            project_number_column = k
+            logging.debug(f'P- number is in column {project_number_column}')
+    for row in range(2,num_of_rows+1): # TODO: need to calculate #rows via a function, not relying on len of merged_dict
+        nested_dict = {}
         for column in range(1,num_of_cols+1):
             cell = sheet.cell(row = row, column = column)
             v = cell.value
             # print(f'row is {row}. Column is {column}, value is {v}')
-            nestedKey = headersDict[column]
-            nestedVal = v
-            nestedDict.setdefault(nestedKey, nestedVal)
-            if column == projectNumberColumn:
-                jobNumber = v
-        dict.setdefault(jobNumber, nestedDict)
-    return dict
+            nested_key = headers_dict[column]
+            nested_val = v
+            nested_dict.setdefault(nested_key, nested_val)
+            if column == project_number_column:
+                job_number = v
+        dic.setdefault(job_number, nested_dict)
+    return dic
 
 
-def columnCounter(xls_filename): #checks row 1 and counts how many cells have data, therefore how many columns in xls
+def column_counter(xls_filename): #checks row 1 and counts how many cells have data, therefore how many columns in xls
     logging.debug('Counting columns in xls')
     wb = openpyxl.load_workbook(xls_filename)
     sheet = wb.active
@@ -601,7 +583,7 @@ def columnCounter(xls_filename): #checks row 1 and counts how many cells have da
     return int(cols)-1 # need to be minus one because it increments cols, then realises it's an empty cell
 
 
-def rowCounter(xls_filename): #checks column 1 and counts how many cells have data, therefore how many rows in xls
+def row_counter(xls_filename): #checks column 1 and counts how many cells have data, therefore how many rows in xls
     logging.debug('Counting rows in xls')
     wb = openpyxl.load_workbook(xls_filename)
     sheet = wb.active
@@ -617,12 +599,12 @@ def rowCounter(xls_filename): #checks column 1 and counts how many cells have da
 
 
 
-def excelHeadingsGrabber(xls_filename): # checks row 1 of xls and returns a dictionary showing col# & heading
-    logging.debug('excelHeadingsGrabber - establishing headings/columns dict')
+def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a dictionary showing col# & heading
+    logging.debug('excel_headings_grabber - establishing headings/columns dict')
     wb = openpyxl.load_workbook(xls_filename)
     sheet = wb.active
     cols = 1
-    dic = {} # start from 1st column
+    dic = {}  # start from 1st column
     while 1:
         check_cell = sheet.cell(row = 1, column = cols)
         v = check_cell.value
@@ -634,13 +616,13 @@ def excelHeadingsGrabber(xls_filename): # checks row 1 of xls and returns a dict
     return dic
 
 
-importedDict = oldDataExcelToDictImporter('data.xlsx')  # importing the excel (old data) to a dict...
+imported_dict = old_data_excel_to_dict_importer('data.xlsx')  # importing the excel (old data) to a dict...
 
-excel_export_mergedDict(importedDict, 'exportedDict.xlsx', mergedDictHeadings) # .. then exporting that to prove identical
+excel_export_mergedDict(imported_dict, 'exportedDict.xlsx', merged_dict_headings) # .. then exporting that to prove identical
 
 
 
-# moNew = process_soup(exampleNewSoup)
+# mo_new = process_soup(example_new_soup)
 
 '''
 ### This is where the levers get pulled.
@@ -648,13 +630,13 @@ excel_export_mergedDict(importedDict, 'exportedDict.xlsx', mergedDictHeadings) #
 # First we set up the original variables, so this happens outside of the while loop as a one-off
 
 # newSoup = download_soup()     #toggle off for test mode
-moOriginal = process_soup(exampleOldSoup)   #parameter: newSoup or exampleOldSoup for testing
-#logging.debug('exampleSoup looks like this:\n\n',exampleSoup)
-original10 = create_topList(moOriginal, 10)   #match object, desired number of projects in list
+mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+#logging.debug('example_soup looks like this:\n\n',example_soup)
+original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
     #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(exampleNewSoup)   # parameter can be newSoup for live or exampleNewSoup for test mode
-    latest10 = create_topList(mo2, 10)
+    mo2 = process_soup(example_new_soup)   # parameter can be newSoup for live or example_new_soup for test mode
+    latest10 = create_top_list(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
     print('Original10 looks like this:\n',original10)
@@ -676,8 +658,8 @@ while 1:     #this is the loop that endlessly repeats
 
 
 """
-original20 = create_topList(moOriginal, 20)   #match object, desired number of projects in list
-new20 = create_topList(moNew, 20)
+original20 = create_top_list(mo_original, 20)   #match object, desired number of projects in list
+new20 = create_top_list(mo_new, 20)
 print("new projects are: ", new_project_search(new20, original20))
 print("original20 looks like this: ",original20)
 print("the job# in the first item in original20 looks like this: ", original20[0][3])
@@ -709,11 +691,11 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 
 
 # logging.debug('Example sequence')
-# exampleOldMo = process_soup(exampleOldSoup)
-# exampleNewMo = process_soup(exampleNewSoup)
-# exampleOriginal10 = create_topList(exampleOldMo, 10)   #match object, desired number of projects in list
+# exampleOldMo = process_soup(example_old_soup)
+# exampleNewMo = process_soup(example_new_soup)
+# exampleOriginal10 = create_top_list(exampleOldMo, 10)   #match object, desired number of projects in list
 # print('ExampleOriginal10:\n', exampleOriginal10,'\n')
-# exampleLatest10 = create_topList(exampleNewMo, 10)   #match object, desired number of projects in list
+# exampleLatest10 = create_top_list(exampleNewMo, 10)   #match object, desired number of projects in list
 # print('ExampleLatest10:\n', exampleLatest10,'\n')
 # exampleNewbies = new_project_search(exampleLatest10, exampleOriginal10)
 # print('The example new projects are:\n',exampleNewbies,'\n')
