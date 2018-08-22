@@ -669,9 +669,9 @@ newest_dict = create_masterDict(mo_newest)
 excel_export_dict(newest_dict, 'newest.xlsx')
 
 # regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
-# project name is not due to regex as I have tested and it is accurate, must be alias getting assigned as 'project name' in a dict.
-# need to scrutinise one of the affected projects to see what's up.
-# It seems that Survey Name and Alias have been switched across the board - the data for one is assigned to the heading of the other
+# project name and alias were switched, now fixed
+# realised that not all projects in the newest example html (dated in Aug-18) are showing up in the 'newest' excel export so need to
+# troubleshoot that next
 
 pprint.pprint(merged_dict['P-44633'])
 
