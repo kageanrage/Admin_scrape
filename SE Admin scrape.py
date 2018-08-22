@@ -55,6 +55,7 @@ def download_soup():
     #soupFile.close()
     return soup
 
+
 def process_soup(soup):
     logging.debug('Starting table isolation')
     table_only = soup.select(
@@ -76,6 +77,7 @@ def process_soup(soup):
     mo = projects_regex.findall(table_string)
     #print('newly created mo looks like this:\n\n',mo)
     return mo
+
 
 def list_creator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
     #headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
@@ -101,13 +103,6 @@ def list_creator(valueList):   #this function takes in a MO from the regex and c
     return new_list
 
 
-
-
-
-
-
-
-
 def create_masterList(mo):     #creates a list of all projects in given MO, first row will be headings
     #global masterList
     master_list = [['URL', 'Alias', 'Survey name', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI',
@@ -116,11 +111,13 @@ def create_masterList(mo):     #creates a list of all projects in given MO, firs
         master_list.append(list_creator(mo[i]))
     return master_list
 
+
 def create_top_list(mo, num):    #num = how long you want the list to be
     top_list = []
     for i in range(0, num):
         top_list.append(list_creator(mo[i]))
     return top_list
+
 
 def new_project_search(new_list, old_list):
 
@@ -146,6 +143,7 @@ def new_project_search(new_list, old_list):
     print('List of matched items: ', matches)
     return(unmatched)
 
+
 def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     logging.debug('Excel section - creating workbook object')
     wb = openpyxl.Workbook()  # create excel workbook object
@@ -169,40 +167,6 @@ def excel_export(list):     #### THIS FUNCTION IS THE EXPORT TO EXCEL  #####
     # this section populates the first row in the sheet (headings) with bold style
     #make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
     wb.save('admin.xlsx')  # save workbook as admin.xlsx
-    logging.debug('Excel workbook completed and saved')
-
-def excel_export_dict(dict, filename):     #### Modifying excel_export list fn to work with master_dict  #####
-    logging.debug('Excel section - creating workbook object')
-    wb = openpyxl.Workbook()  # create excel workbook object
-    wb.save(filename)  # save workbook
-    sheet = wb.active  # create sheet object as the Active sheet from the workbook object
-    wb.save(filename)  # save workbook
-    headings_list = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
-    # DICT-BASED POPULATION OF EXCEL SHEET - NOT YET UPDATED BELOW THIS #####
-
-    # this bit populates and emboldens the first row
-    row = 1
-    for column in range(0,len(headings_list)):
-        cell = sheet.cell(row=row, column=column+1)
-        cell.value = headings_list[column]
-    make_bold(sheet, wb, sheet['A1':'N1'])    #Calls the make_bold function on first row of excel sheet
-
-    #this bit then populates the rest of the sheet with the masterDict content
-    for row, item_tuple in enumerate(dict.items(), 2):
-        # print(f'row is {row}, key is {item_tuple[0]}, project dict is{item_tuple[1]}')
-        for column, heading in enumerate(headings_list, 1):
-            # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
-            cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
-            v = item_tuple[1].get(heading)
-            try:
-                v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
-            except ValueError:
-                pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
-            cell.value = v
-            if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
-                cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
-
-    wb.save(filename)  # save workbook as admin.xlsx
     logging.debug('Excel workbook completed and saved')
 
 
@@ -244,6 +208,7 @@ def export_to_sqlite(list_of_projects): # Export to SQLite
     c.close()
     conn.close()
 
+
 def send_email(user, pwd, recipient, subject, body):
 
     gmail_user = user
@@ -267,6 +232,7 @@ def send_email(user, pwd, recipient, subject, body):
     except:
         print('failed to send mail')
 
+
 def email_body_content(list_of_newbies):
     logging.debug('Initialising email_body_content function')
     body = ''
@@ -278,8 +244,9 @@ def email_body_content(list_of_newbies):
     #print(body)
     return(body)
 
-def dict_creator(value_list):   #this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
-    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
+
+def dict_creator(value_list):   # this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
+    headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site']
     new_dict = {}
     for i in range(0,len(headings)):
         new_dict.setdefault(headings[i], value_list[i])
@@ -316,6 +283,44 @@ def create_masterDict(mo):     #creates a dict of all project dicts in given MO
     return master_dict
 
 
+def excel_export_dict(dic, filename): # works with the 14 headings as per scrape (not the 22 mergedDict headings)
+    logging.debug('Excel section - creating workbook object')
+    wb = openpyxl.Workbook()  # create excel workbook object
+    wb.save(filename)  # save workbook
+    sheet = wb.active  # create sheet object as the Active sheet from the workbook object
+    wb.save(filename)  # save workbook
+    headings_list = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site', 'incidence', 'QFincidence']
+
+    # this bit populates and emboldens the first row
+    row = 1
+    for column in range(0, len(headings_list)):
+        cell = sheet.cell(row=row, column=column+1)
+        cell.value = headings_list[column]
+    make_bold(sheet, wb, sheet['A1':'N1'])    # Calls the make_bold function on first row of excel sheet
+
+    # this bit then populates the rest of the sheet with the masterDict content
+    for row, item_tuple in enumerate(dic.items(), 2):
+        # print(f'row is {row}, key is {item_tuple[0]}, project dic is{item_tuple[1]}')
+        for column, heading in enumerate(headings_list, 1):
+            # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
+            cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
+            v = item_tuple[1].get(heading)
+            try:
+                v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
+            except ValueError:
+                pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
+            cell.value = v
+            if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
+                cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
+
+    wb.save(filename)  # save workbook as admin.xlsx
+    logging.debug('Excel workbook completed and saved')
+
+
+
+
+
+
 #AUG-2018 - this is my current working area
 #TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
 #First I want to change my data structure back to dictionaries, so that new and old dictionaries can be combined/compared
@@ -332,9 +337,10 @@ latest_dict = create_masterDict(mo_new)
 
 # Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
 # dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
-# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'excel_to_dict_converter'
+# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'mapping_dict_creator'
 
-def excel_to_dict_converter(excel_filename, r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
+
+def mapping_dict_creator(excel_filename, r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
     logging.debug('Now attempting to read-in excel data to create dic')
     wb = openpyxl.load_workbook(excel_filename)
     sheet = wb.active
@@ -351,11 +357,13 @@ def excel_to_dict_converter(excel_filename, r1, r2, c1, c2): # given excel filen
         dic.setdefault(key, value)
     return dic
 
-old_map = excel_to_dict_converter('mapping.xlsx', 3, 17, 1, 3)
-new_map = excel_to_dict_converter('mapping.xlsx', 3, 17, 4, 6)
 
-# now I need to create a new dict that contains all the info - new, old and dynamically created, and then export this to excel (perhaps excluding unchanged rows), then have this emailed each morning to KP/JW
+old_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
+new_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
+
+# now I need to create a new dict that contains all the info - from old html, new html and dynamically created 'gap' fields
 # first create dict containing old projects, using modified headings/keys
+
 
 def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
     merged = {}
@@ -373,9 +381,12 @@ def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
         merged.setdefault(k, nested_dict)
     return merged
 
+
 merged_dict = create_merged_dict_with_old_data(original_dict, old_map)
 
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
+
+
 def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
     for k, v in new_data_dict.items():
         nested_dict = {} # blank dict which we will add to merged_dict at the end of each loop
@@ -401,6 +412,8 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
 add_new_data(latest_dict, merged_dict, new_map)
 
 # now let's add the formula-calculated fields within each dict
+
+
 def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to merged_dict
     for k, v in dict.items():
         c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
@@ -427,6 +440,7 @@ def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to mer
             oQFIR = 0
             v['QFincidence_overnight'] = oQFIR
 
+
 merged_dict_headings = ['URL',
 'Alias',
 'Survey name',
@@ -451,7 +465,7 @@ merged_dict_headings = ['URL',
 'QFincidence_overnight',
                         ]
 
-dynamic_field_adder(merged_dict) #add the dynamic fields (gaps, overnight) to merged_dict
+dynamic_field_adder(merged_dict)  # add the dynamic fields (gaps, overnight) to merged_dict
 
 def excel_export_mergedDict(dict, filename, headings):     #export merged dict to excel
     logging.debug('Attempting to export merged_dict to excel')
@@ -469,7 +483,7 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
 
     percentage_headings = ['incidence', 'incidence_overnight', 'QFincidence', 'QFincidence_overnight',]
 
-     #this bit then populates the rest of the sheet with the merged_dict content
+     # this bit then populates the rest of the sheet with the merged_dict content
     for row, item_tuple in enumerate(dict.items(), 2):
         for column, heading in enumerate(headings, 1):
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
@@ -492,11 +506,11 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
     wb.save(filename)  # save workbook with given filename
     logging.debug('Excel workbook completed and saved')
 
+
 excel_export_mergedDict(merged_dict, 'merged_dict.xlsx', merged_dict_headings) # excel export of merged_dict
 
 
 # now I need to create a more readable excel export only containing pertinent info / projects
-
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
 
 
@@ -511,7 +525,6 @@ def changes_dict_creator(large_dict):
 changes_dict = changes_dict_creator(merged_dict)
 
 
-
 # this small section shows there must be a problem with the regex confusing Alias with project name, particularly
 # where there are no P-numbers. Need to look into this further, or alternatively, restrict data analysis to the
 # newest 50 projects.
@@ -520,6 +533,8 @@ changes_dict = changes_dict_creator(merged_dict)
 
 
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
+
+
 changes_dict_headings_of_interest = [
 'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
     'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
@@ -533,15 +548,8 @@ excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings
 # looking into standards to see how others would do this - perhaps with a cloud database
 # report could have 'last run date/time'
 
-# STEPS IN LOOP
-# import old data from xls, store in dict
-    # xls will be a merged file so need to write function to scrape merged xls
-# download new data
-# save new data to 'data' xls, overwriting old data
-# merge, create report, send email
 
-
-def old_data_excel_to_dict_importer(excel_filename): # given excel filename, creates a dictionary converting the table into key-value pairs
+def old_data_excel_to_dict_importer(excel_filename):  # given excel filename, creates a dictionary converting the table into key-value pairs
     logging.debug('Old data import - now attempting to read-in excel data to create dic')
     wb = openpyxl.load_workbook(excel_filename)
     sheet = wb.active
@@ -591,12 +599,11 @@ def row_counter(xls_filename): #checks column 1 and counts how many cells have d
     while 1:
         check_cell = sheet.cell(row = rows, column = 1)
         v = check_cell.value
-        if v != None: #if there is data in the cell
-            rows += 1 # check the next column along
+        if v != None:  #if there is data in the cell
+            rows += 1  # check the next column along
         else:    # if no data in the cell, then that's the last row, so break
              break
-    return int(rows)-1 # need to be minus one because it increments rows, then realises it's an empty cell
-
+    return int(rows)-1  # need to be minus one because it increments rows, then realises it's an empty cell
 
 
 def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a dictionary showing col# & heading
@@ -616,15 +623,67 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
     return dic
 
 
-imported_dict = old_data_excel_to_dict_importer('data.xlsx')  # importing the excel (old data) to a dict...
+# imported_dict = old_data_excel_to_dict_importer('data.xlsx')  # importing the excel (old data) to a dict...
 
-excel_export_mergedDict(imported_dict, 'exportedDict.xlsx', merged_dict_headings) # .. then exporting that to prove identical
+# excel_export_mergedDict(imported_dict, 'exportedDict.xlsx', merged_dict_headings) # .. then exporting that to prove identical
+
+
+
+# STEPS IN LOOP
+# import old data from xls, store in dict
+    # xls will be a merged file so need to write function to scrape merged xls
+# download new data
+# save new data to 'data' xls, overwriting old data
+# merge, create report, send email
+
+
+# So far we have the ability to take an old dict + a new dict, each with fewer fields, and merge them, we don't though
+#  have the ability to take an old merged dict and update it with new data, i.e. replace the 'Original' data with the
+# 'revised' data in the old dict and bring the new data in to replace what was previous in 'revised'. What's the best
+# way to do this? Initial thinking is to make a dict with all 3 sets of data in it and then use what we need from there
+
+# First I'll need to import the current merged_dict into a dictionary
+# but before I do that, it seems my QFIR has gone missing so I will troubleshoot that
+
+
+
+
+
 
 
 
 # mo_new = process_soup(example_new_soup)
 
+
+# AUG-18 loop
+
+#  This is where the levers get pulled.
+
+
+"""
+# newSoup = download_soup()     #toggle off for test mode
+mo_original = process_soup(example_old_soup)   #parameter: newSoup or example_old_soup for testing
+#logging.debug('example_soup looks like this:\n\n',example_soup)
+original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
+while 1:     #this is the loop that endlessly repeats
+    #newSoup = download_soup()                # download latest HTML; toggle off for test mode
+    mo2 = process_soup(example_new_soup)   # parameter can be newSoup for live or example_new_soup for test mode
+    latest10 = create_top_list(mo2, 10)
+    newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
+    print('Latest10 looks like this:\n',latest10)
+    print('Original10 looks like this:\n',original10)
+    print('newbies:\n',newbies)
+    if len(newbies) > 0:
+        send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',email_body_content(newbies))
+    original10 = latest10    #overwrite original10 with the latest10
+    print('End of program, waiting 60 sec')
+    time.sleep(1000)     #1000 for test mode
+
+"""
+
+
 '''
+# 2017 loop
 ### This is where the levers get pulled.
 
 # First we set up the original variables, so this happens outside of the while loop as a one-off
