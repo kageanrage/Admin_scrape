@@ -78,8 +78,10 @@ def process_soup(soup, string_txt_filename):
     #    '<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # alternative Regex which incorporates 'True' or 'False' being on site
     # projects_regex = re.compile(
     # '<a href="(.{10,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 3rd iteration of regex
+    # projects_regex = re.compile(
+    # '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,20})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 4th iteration of regex
     projects_regex = re.compile(
-    '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,20})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 4th iteration of regex
+    '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
 
 
     # TO DO: Return all examples of regex findall search
@@ -660,6 +662,8 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 
 
 mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
+print('now printing mo_newest')
+pprint.pprint(mo_newest)
 newest_dict = create_masterDict(mo_newest)
 # pprint.pprint(newest_dict)
 
@@ -671,11 +675,17 @@ excel_export_dict(newest_dict, 'newest.xlsx')
 # regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
 # project name and alias were switched, now fixed
 # realised that not all projects in the newest example html (dated in Aug-18) are showing up in the 'newest' excel export so need to
-# troubleshoot that next
+# troubleshoot that next.
+# printing mo_newest shows these same jobs are missing so must be a regex issue
 
-pprint.pprint(merged_dict['P-44633'])
 
-pprint.pprint(original_dict['P-44160'])
+# pprint.pprint(newest_dict['P-45918'])
+
+
+
+
+
+
 # mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
 
 
