@@ -11,9 +11,8 @@ __pycache__/
 config.py
 example HTML/
 example HTML 19 Dec/
-admin.xlsx
-admin_dict.xlsx
 *.xlsx
+*.txt
 plan/
 
 # User-specific stuff:
