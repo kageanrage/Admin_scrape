@@ -268,7 +268,7 @@ def dict_creator(value_list):   # this function takes in a MO from the regex and
             # print('an exception occured:',err2)
             qf_incidence = 0
     new_dict.setdefault('incidence', incidence)
-    new_dict.setdefault('qf_incidence', qf_incidence)
+    new_dict.setdefault('QFincidence', qf_incidence)
     return new_dict
 
 
