@@ -82,8 +82,10 @@ def process_soup(soup, string_txt_filename):
     # '<a href="(.{10,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 3rd iteration of regex
     # projects_regex = re.compile(
     # '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,20})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 4th iteration of regex
+    # projects_regex = re.compile(
+    # '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{3,70})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
     projects_regex = re.compile(
-    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{3,70})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
+    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,70})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
 
 
     # TO DO: Return all examples of regex findall search
@@ -289,11 +291,9 @@ def dict_creator(value_list):   # this function takes in a MO from the regex and
 def create_masterDict(mo):     #creates a dict of all project dicts in given MO
     master_dict = {}
     for i in range(0,len(mo)):
-        # logging.debug(f'i is {i}, adding {mo[i][3]} to master_dict')
-        master_dict.setdefault(mo[i][3], dict_creator(mo[i]))
-    #TO DO: create a dictionary where each key is the project number and each value is the dict for that job
-    #for i in range(0, len(mo) - 1):
-    #    mList.append(list_creator(mo[i]))
+        url_aka_guid = mo[i][0]
+        master_dict.setdefault(url_aka_guid, dict_creator(mo[i]))
+
     return master_dict
 
 
@@ -314,7 +314,7 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
 
     # this bit then populates the rest of the sheet with the masterDict content
     for row, item_tuple in enumerate(dic.items(), 2):
-        # print(f'row is {row}, key is {item_tuple[0]}, project dic is{item_tuple[1]}')
+        # print(f'row is {row}, item_tuple is {item_tuple}, key is {item_tuple[0]}, project dic is{item_tuple[1]}')
         for column, heading in enumerate(headings_list, 1):
             # print(f"row is {row}, column is {column} heading is {heading}, nested value is {item_tuple[1].get(heading)}")
             cell = sheet.cell(row=row, column=column)  # so on first loop, row = 2, col = 1
@@ -422,6 +422,7 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                     merged_data_dict[k][equiv] = nv
 
         merged_data_dict.setdefault(k, nested_dict)
+
 
 add_new_data(latest_dict, merged_dict, new_map)
 
@@ -539,13 +540,6 @@ def changes_dict_creator(large_dict):
 changes_dict = changes_dict_creator(merged_dict)
 
 
-# this small section shows there must be a problem with the regex confusing Alias with project name, particularly
-# where there are no P-numbers. Need to look into this further, or alternatively, restrict data analysis to the
-# newest 50 projects.
-# DECISION - to ignore the issue for now (!) as it only pertains to old projects which should not change in future
-
-
-
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
 
 
@@ -575,7 +569,7 @@ def old_data_excel_to_dict_importer(excel_filename):  # given excel filename, cr
         if v == 'Project number':
             project_number_column = k
             logging.debug(f'P- number is in column {project_number_column}')
-    for row in range(2,num_of_rows+1): # TODO: need to calculate #rows via a function, not relying on len of merged_dict
+    for row in range(2,num_of_rows+1):
         nested_dict = {}
         for column in range(1,num_of_cols+1):
             cell = sheet.cell(row = row, column = column)
@@ -629,11 +623,11 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
     while 1:
         check_cell = sheet.cell(row = 1, column = cols)
         v = check_cell.value
-        if v != None: #if there is data in the cell
+        if v != None:  # if there is data in the cell
             dic.setdefault(cols, v)
             cols += 1 # check the next column along
         else:    # if no data in the cell, then that's the last column, so break
-             break
+            break
     return dic
 
 
@@ -662,17 +656,42 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 # let's add to that the newest data
 
 
-
 mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
-print('now printing mo_newest')
+# print('now printing mo_newest')
 # pprint.pprint(mo_newest)
 newest_dict = create_masterDict(mo_newest)
 # pprint.pprint(newest_dict)
 
 
-
-# logging.debug('Now exporting newest dict')
+# logging.debug('Now exporting original dict')
 excel_export_dict(original_dict, 'original.xlsx')
+len_of_original_dict = len(original_dict)
+len_of_mo_original = len(mo_original)
+rows_in_original_xls = row_counter('original.xlsx')
+print(f'len of mo_original is {len_of_mo_original} original_dict is {len_of_original_dict} whereas excel file has {rows_in_original_xls} rows.')
+print('original_dict looks like this:')
+pprint.pprint(original_dict['46f5d384-7226-4e85-b079-a6d000490833'])
+pprint.pprint(original_dict['f6899ae7-b7c5-4750-9e09-a691002744b1'])
+
+
+
+# pprint.pprint(original_dict)
+
+
+# logging.debug('Now exporting original dict')
+excel_export_dict(newest_dict, 'newest.xlsx')
+len_of_newest_dict = len(newest_dict)
+len_of_mo_newest = len(mo_newest)
+rows_in_newest_xls = row_counter('newest.xlsx')
+print(f'len of mo_newest is {len_of_mo_newest} newest_dict is {len_of_newest_dict} whereas excel file has {rows_in_newest_xls} rows.')
+# print('newest_dict looks like this:')
+# pprint.pprint(newest_dict)
+
+
+
+
+
+
 
 # regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
 # project name and alias were switched, now fixed
@@ -683,6 +702,7 @@ excel_export_dict(original_dict, 'original.xlsx')
 # now though mo_original projects are not showing up so I'm troubleshooting there in the regex software using file 'original vs html'
 # I've realised the issue is that I've been using project numbers as unique identifiers when in fact there are plenty of duplicates.
 # I need to use the GUID part of the URL instead. This will mean changing the regex to capture restructuring all dictionaries to use that key
+# i've done this but not entirely as still seems to be buggy where projects with same project numbers don't get exported
 
 # pprint.pprint(newest_dict['P-45918'])
 
