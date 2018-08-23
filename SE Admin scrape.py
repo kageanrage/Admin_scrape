@@ -85,7 +85,7 @@ def process_soup(soup, string_txt_filename):
     # projects_regex = re.compile(
     # '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{3,70})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
     projects_regex = re.compile(
-    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,70})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
+    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,75})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
 
 
     # TO DO: Return all examples of regex findall search
@@ -669,9 +669,9 @@ len_of_original_dict = len(original_dict)
 len_of_mo_original = len(mo_original)
 rows_in_original_xls = row_counter('original.xlsx')
 print(f'len of mo_original is {len_of_mo_original} original_dict is {len_of_original_dict} whereas excel file has {rows_in_original_xls} rows.')
-print('original_dict looks like this:')
-pprint.pprint(original_dict['46f5d384-7226-4e85-b079-a6d000490833'])
-pprint.pprint(original_dict['f6899ae7-b7c5-4750-9e09-a691002744b1'])
+# print('original_dict looks like this:')
+# pprint.pprint(original_dict['46f5d384-7226-4e85-b079-a6d000490833'])
+# pprint.pprint(original_dict['f6899ae7-b7c5-4750-9e09-a691002744b1'])
 
 
 
@@ -686,25 +686,6 @@ rows_in_newest_xls = row_counter('newest.xlsx')
 print(f'len of mo_newest is {len_of_mo_newest} newest_dict is {len_of_newest_dict} whereas excel file has {rows_in_newest_xls} rows.')
 # print('newest_dict looks like this:')
 # pprint.pprint(newest_dict)
-
-
-
-
-
-
-
-# regex was failing but now updated after lots of troubleshooting with Regexbuddy software. Issue of 'giftpax' appearing in place of
-# project name and alias were switched, now fixed
-# realised that not all projects in the newest example html (dated in Aug-18) are showing up in the 'newest' excel export so need to
-# troubleshoot that next.
-# printing mo_newest shows these same jobs are missing so must be a regex issue
-# fixed it in the regex
-# now though mo_original projects are not showing up so I'm troubleshooting there in the regex software using file 'original vs html'
-# I've realised the issue is that I've been using project numbers as unique identifiers when in fact there are plenty of duplicates.
-# I need to use the GUID part of the URL instead. This will mean changing the regex to capture restructuring all dictionaries to use that key
-# i've done this but not entirely as still seems to be buggy where projects with same project numbers don't get exported
-
-# pprint.pprint(newest_dict['P-45918'])
 
 
 
