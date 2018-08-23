@@ -37,6 +37,8 @@ elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
     example_old_HTML_file = open(cfg.desktop_ex_old_html_file)
     example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    example_newest_HTML_file = open(cfg.laptop_ex_newest_html_file)
+    example_newest_soup = bs4.BeautifulSoup(example_newest_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 
 def download_soup():
@@ -81,7 +83,7 @@ def process_soup(soup, string_txt_filename):
     # projects_regex = re.compile(
     # '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,20})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 4th iteration of regex
     projects_regex = re.compile(
-    '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
+    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{3,70})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
 
 
     # TO DO: Return all examples of regex findall search
@@ -663,7 +665,7 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 
 mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
 print('now printing mo_newest')
-pprint.pprint(mo_newest)
+# pprint.pprint(mo_newest)
 newest_dict = create_masterDict(mo_newest)
 # pprint.pprint(newest_dict)
 
@@ -679,6 +681,8 @@ excel_export_dict(original_dict, 'original.xlsx')
 # printing mo_newest shows these same jobs are missing so must be a regex issue
 # fixed it in the regex
 # now though mo_original projects are not showing up so I'm troubleshooting there in the regex software using file 'original vs html'
+# I've realised the issue is that I've been using project numbers as unique identifiers when in fact there are plenty of duplicates.
+# I need to use the GUID part of the URL instead. This will mean changing the regex to capture restructuring all dictionaries to use that key
 
 # pprint.pprint(newest_dict['P-45918'])
 
