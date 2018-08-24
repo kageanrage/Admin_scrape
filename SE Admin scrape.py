@@ -331,29 +331,6 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
     logging.debug('Excel workbook completed and saved')
 
 
-
-
-
-
-#AUG-2018 - this is my current working area
-#TO DO: create version which runs at 5:30PM and then again at 8:30AM and emails an update of what has changed in that time
-#First I want to change my data structure back to dictionaries, so that new and old dictionaries can be combined/compared
-
-mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
-original_dict = create_masterDict(mo_original)
-
-# now I can create a dictionary of the new content
-mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
-latest_dict = create_masterDict(mo_new)
-# excel_export_dict(latest_dict, 'admin_dict2.xlsx')
-
-#now I need to create dictionary with old and new data and ultimately show the differences between the two
-
-# Before building the merged dict, I need to create dictionaries which indicate which variable in the old/new data
-# dictionaries respectively should be mapped to which variable in the merged dict. e.g. in old data, 'Completes' becomes
-# 'Completes_Original'. I've laid this out in excel and will import from there into mapping dictionaries using 'mapping_dict_creator'
-
-
 def mapping_dict_creator(excel_filename, r1, r2, c1, c2): # given excel filename and 2-column-wide excel table co-ordinates, creates a dictionary converting the table into key-value pairs
     logging.debug('Now attempting to read-in excel data to create dic')
     wb = openpyxl.load_workbook(excel_filename)
@@ -372,13 +349,6 @@ def mapping_dict_creator(excel_filename, r1, r2, c1, c2): # given excel filename
     return dic
 
 
-old_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
-new_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
-
-# now I need to create a new dict that contains all the info - from old html, new html and dynamically created 'gap' fields
-# first create dict containing old projects, using modified headings/keys
-
-
 def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
     merged = {}
     for k, v in old_data_dict.items():
@@ -394,11 +364,6 @@ def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
                 nested_dict.setdefault(nk, nv)
         merged.setdefault(k, nested_dict)
     return merged
-
-
-merged_dict = create_merged_dict_with_old_data(original_dict, old_map)
-
-# now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
 
 
 def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
@@ -422,11 +387,6 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                     merged_data_dict[k][equiv] = nv
 
         merged_data_dict.setdefault(k, nested_dict)
-
-
-add_new_data(latest_dict, merged_dict, new_map)
-
-# now let's add the formula-calculated fields within each dict
 
 
 def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to merged_dict
@@ -455,32 +415,6 @@ def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to mer
             oQFIR = 0
             v['QFincidence_overnight'] = oQFIR
 
-
-merged_dict_headings = ['URL',
-'Survey name',
-'Alias',
-'Project number',
-'Client name',
-'junk',
-'Expected LOI',
-'Actual LOI',
-'Completes_Original',
-'Completes_Revised',
-'Completes_gap',
-'Screen Outs_Original',
-'Screen Outs_Revised',
-'Screen Outs_gap',
-'Quota Fulls_Original',
-'Quota Fulls_Revised',
-'Quota Fulls_gap',
-'Live on site',
-'incidence',
-'incidence_overnight',
-'QFincidence',
-'QFincidence_overnight',
-                        ]
-
-dynamic_field_adder(merged_dict)  # add the dynamic fields (gaps, overnight) to merged_dict
 
 def excel_export_mergedDict(dict, filename, headings):     #export merged dict to excel
     logging.debug('Attempting to export merged_dict to excel')
@@ -522,39 +456,12 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
     logging.debug('Excel workbook completed and saved')
 
 
-excel_export_mergedDict(merged_dict, 'merged_dict.xlsx', merged_dict_headings) # excel export of merged_dict
-
-
-# now I need to create a more readable excel export only containing pertinent info / projects
-# If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
-
-
 def changes_dict_creator(large_dict):
     my_dict = {}
     for k, v in large_dict.items():
         if v['Completes_gap'] > 0 or v['Screen Outs_gap'] > 0 or v['Quota Fulls_gap'] > 0:
             my_dict.setdefault(k, v)
     return my_dict
-
-
-changes_dict = changes_dict_creator(merged_dict)
-
-
-# only certain headings are of interest in the new 'changes' excel export, they are in this list
-
-
-changes_dict_headings_of_interest = [
-'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
-    'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
-    'Quota Fulls_Revised','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
-]
-
-
-excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest) # excel export of changes_dict using columns of interest only
-
-# now I've got the report ready I need to work out how I want to store data. Could stash in an xls/database on my home PC
-# looking into standards to see how others would do this - perhaps with a cloud database
-# report could have 'last run date/time'
 
 
 def old_data_excel_to_dict_importer(excel_filename):  # given excel filename, creates a dictionary converting the table into key-value pairs
@@ -631,11 +538,6 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
     return dic
 
 
-# imported_dict = old_data_excel_to_dict_importer('data.xlsx')  # importing the excel (old data) to a dict...
-
-# excel_export_mergedDict(imported_dict, 'exportedDict.xlsx', merged_dict_headings) # .. then exporting that to prove identical
-
-
 
 # STEPS IN LOOP
 # import old data from xls, store in dict
@@ -655,71 +557,113 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 # so, mergedDict already exists and contains the original and revised data
 # let's add to that the newest data
 
+################################################
+# THIS IS WHERE EVERYTHING GETS CREATED
 
-mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
-# print('now printing mo_newest')
-# pprint.pprint(mo_newest)
-newest_dict = create_masterDict(mo_newest)
-# pprint.pprint(newest_dict)
-
-
-# logging.debug('Now exporting original dict')
+mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
+original_dict = create_masterDict(mo_original)
 excel_export_dict(original_dict, 'original.xlsx')
-len_of_original_dict = len(original_dict)
 len_of_mo_original = len(mo_original)
+len_of_original_dict = len(original_dict)
 rows_in_original_xls = row_counter('original.xlsx')
 print(f'len of mo_original is {len_of_mo_original} original_dict is {len_of_original_dict} whereas excel file has {rows_in_original_xls} rows.')
-# print('original_dict looks like this:')
-# pprint.pprint(original_dict['46f5d384-7226-4e85-b079-a6d000490833'])
-# pprint.pprint(original_dict['f6899ae7-b7c5-4750-9e09-a691002744b1'])
 
 
+mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
+latest_dict = create_masterDict(mo_new)
+excel_export_dict(latest_dict, 'latest.xlsx')
+len_of_mo_new = len(mo_new)
+len_of_latest_dict = len(latest_dict)
+rows_in_latest_xls = row_counter('latest.xlsx')
+print(f'len of mo_latest is {len_of_mo_latest} latest_dict is {len_of_latest_dict} whereas excel file has {rows_in_latest_xls} rows.')
 
-# pprint.pprint(original_dict)
 
-
-# logging.debug('Now exporting original dict')
+mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
+newest_dict = create_masterDict(mo_newest)
 excel_export_dict(newest_dict, 'newest.xlsx')
-len_of_newest_dict = len(newest_dict)
 len_of_mo_newest = len(mo_newest)
+len_of_newest_dict = len(newest_dict)
 rows_in_newest_xls = row_counter('newest.xlsx')
 print(f'len of mo_newest is {len_of_mo_newest} newest_dict is {len_of_newest_dict} whereas excel file has {rows_in_newest_xls} rows.')
-# print('newest_dict looks like this:')
-# pprint.pprint(newest_dict)
+
+
+
+# now to create merged dict
+
+# first I need MAPPING DICTS: dictionaries which indicate which variable in the old/new data dictionaries respectively
+# should be mapped to which variable in the merged dict
+old_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
+new_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
+
+
+merged_dict = create_merged_dict_with_old_data(original_dict, old_map)
+
+# now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
+
+add_new_data(latest_dict, merged_dict, new_map)
+
+# now let's add the formula-calculated fields within each dict
+
+merged_dict_headings = ['URL',
+'Survey name',
+'Alias',
+'Project number',
+'Client name',
+'junk',
+'Expected LOI',
+'Actual LOI',
+'Completes_Original',
+'Completes_Revised',
+'Completes_gap',
+'Screen Outs_Original',
+'Screen Outs_Revised',
+'Screen Outs_gap',
+'Quota Fulls_Original',
+'Quota Fulls_Revised',
+'Quota Fulls_gap',
+'Live on site',
+'incidence',
+'incidence_overnight',
+'QFincidence',
+'QFincidence_overnight',
+                        ]
+
+dynamic_field_adder(merged_dict)  # add the dynamic fields (gaps, overnight) to merged_dict
+
+# excel_export_mergedDict(merged_dict, 'merged_dict.xlsx', merged_dict_headings) # excel export of merged_dict
+
+
+# If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
+
+changes_dict = changes_dict_creator(merged_dict)
+
+# only certain headings are of interest in the new 'changes' excel export, they are in this list
+
+
+changes_dict_headings_of_interest = [
+'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
+    'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
+    'Quota Fulls_Revised','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
+]
+
+
+excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest) # excel export of changes_dict using columns of interest only
+
+
+# I'll rename data variables to T1-T3 as it's currently so confusing
+# now that regex is sorted, let's build a mergedDict and scrutinise to make sure all data is there
 
 
 
 
 
 
-# mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
 
 
-# AUG-18 loop
-
-#  This is where the levers get pulled.
 
 
-"""
-# newSoup = download_soup()     #toggle off for test mode
-mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
-#logging.debug('example_soup looks like this:\n\n',example_soup)
-original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
-while 1:     #this is the loop that endlessly repeats
-    #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(example_new_soup, 'mo2_string.txt')   # parameter can be newSoup for live or example_new_soup for test mode
-    latest10 = create_top_list(mo2, 10)
-    newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
-    print('Latest10 looks like this:\n',latest10)
-    print('Original10 looks like this:\n',original10)
-    print('newbies:\n',newbies)
-    if len(newbies) > 0:
-        send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',email_body_content(newbies))
-    original10 = latest10    #overwrite original10 with the latest10
-    print('End of program, waiting 60 sec')
-    time.sleep(1000)     #1000 for test mode
 
-"""
+
 
 
 '''
