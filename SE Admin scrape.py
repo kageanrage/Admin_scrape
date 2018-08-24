@@ -362,7 +362,7 @@ def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
     return merged
 
 
-def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
+def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict, T3_or_T2):
     for k, v in new_data_dict.items():
         if k not in merged_data_dict.keys():   # if a totally new project
             # print(f'{k} not found in merged so must be new')
@@ -375,6 +375,10 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                 nested_dict.setdefault('Completes_T1', 0)  # setting to blank as old data doesn't exist
                 nested_dict.setdefault('Screen Outs_T1', 0) # setting to blank as old data doesn't exist
                 nested_dict.setdefault('Quota Fulls_T1', 0) # setting to blank as old data doesn't exist
+                if T3_or_T2 == "T3":
+                    nested_dict.setdefault('Completes_T2', 0)  # setting to blank as old data doesn't exist
+                    nested_dict.setdefault('Screen Outs_T2', 0) # setting to blank as old data doesn't exist
+                    nested_dict.setdefault('Quota Fulls_T2', 0) # setting to blank as old data doesn't exist
             merged_data_dict.setdefault(k, nested_dict)
 
         else:
@@ -387,17 +391,21 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                     merged_data_dict[k][equiv] = nv
 
 
-
-
-def dynamic_field_adder(dic):  # add the dynamic fields (gaps, overnight) to merged_dict
+def dynamic_field_adder(dic, T3_or_T2):  # add the dynamic fields (gaps, overnight) to merged_dict
+    if T3_or_T2 == "T2":
+        T_new = "T2"
+        T_old = "T1"
+    elif T3_or_T2 == "T3":
+        T_new = "T3"
+        T_old = "T2"
     for k, v in dic.items():
-        c_gap = int(v['Completes_T2']) - int(v['Completes_T1'])
+        c_gap = int(v[f'Completes_{T_new}']) - int(v[f'Completes_{T_old}'])
         v['Completes_gap'] = c_gap
         # print(f'Completes Gap for {k} is {c_gap}')
-        s_gap = int(v['Screen Outs_T2']) - int(v['Screen Outs_T1'])
+        s_gap = int(v[f'Screen Outs_{T_new}']) - int(v[f'Screen Outs_{T_old}'])
         v['Screen Outs_gap'] = s_gap
         # print(f'Screen Outs Gap for {k} is {s_gap}')
-        q_gap = int(v['Quota Fulls_T2']) - int(v['Quota Fulls_T1'])
+        q_gap = int(v[f'Quota Fulls_{T_new}']) - int(v[f'Quota Fulls_{T_old}'])
         v['Quota Fulls_gap'] = q_gap
         # print(f'Quota Fulls Gap for {k} is {q_gap}')
         try:
@@ -428,7 +436,7 @@ def excel_export_mergedDict(dict, filename, headings):     #export merged dict t
     for column in range(0,len(headings)):
         cell = sheet.cell(row=row, column=column+1)
         cell.value = headings[column]
-    make_bold(sheet, wb, sheet['A1':'V1'])    #Calls the make_bold function on first row of excel sheet
+    make_bold(sheet, wb, sheet['A1':'Z1'])    #Calls the make_bold function on first row of excel sheet
 
     percentage_headings = ['incidence', 'incidence_overnight', 'QFincidence', 'QFincidence_overnight',]
 
@@ -539,23 +547,10 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 
 
 
-# STEPS IN LOOP
-# import old data from xls, store in dict
-    # xls will be a merged file so need to write function to scrape merged xls
-# download new data
-# save new data to 'data' xls, overwriting old data
-# merge, create report, send email
 
 
-# So far we have the ability to take an old dict + a new dict, each with fewer fields, and merge them, we don't though
-#  have the ability to take an old merged dict and update it with new data, i.e. replace the 'Original' data with the
-# 'revised' data in the old dict and bring the new data in to replace what was previous in 'revised'. What's the best
-# way to do this? Initial thinking is to make a dict with all 3 sets of data in it and then use what we need from there
 
-# First I'll need to import the current merged_dict into a dictionary
 
-# so, mergedDict already exists and contains the original and revised data
-# let's add to that the newest data
 
 ################################################
 # THIS IS WHERE EVERYTHING GETS CREATED
@@ -593,13 +588,14 @@ print(f'len of mo_T3 is {len_of_mo_T3} T3_dict is {len_of_T3_dict} whereas excel
 # should be mapped to which variable in the merged dict
 T1_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
 T2_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
+T3_map = mapping_dict_creator('mapping.xlsx', 3, 17, 7, 9)
 
 
 merged_dict = create_merged_dict_with_old_data(T1_dict, T1_map)
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
-add_new_data(T2_dict, merged_dict, T2_map)
+add_new_data(T2_dict, merged_dict, T2_map, "T2")
 # now let's add the formula-calculated fields within each dict
-merged_dict_headings = ['URL',
+merged_dict_headings_2_data_sets = ['URL',
 'Survey name',
 'Alias',
 'Project number',
@@ -620,10 +616,37 @@ merged_dict_headings = ['URL',
 'incidence',
 'incidence_overnight',
 'QFincidence',
-'QFincidence_overnight',
-                        ]
-dynamic_field_adder(merged_dict)  # add the dynamic fields (gaps, overnight) to merged_dict
-excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings) # excel export of merged_dict
+'QFincidence_overnight']
+merged_dict_headings_3_data_sets = ['URL',
+'Survey name',
+'Alias',
+'Project number',
+'Client name',
+'junk',
+'Expected LOI',
+'Actual LOI',
+'Completes_T1',
+'Completes_T2',
+'Completes_T3',
+'Completes_gap',
+'Screen Outs_T1',
+'Screen Outs_T2',
+'Screen Outs_T3',
+'Screen Outs_gap',
+'Quota Fulls_T1',
+'Quota Fulls_T2',
+'Quota Fulls_T3',
+'Quota Fulls_gap',
+'Live on site',
+'incidence',
+'incidence_overnight',
+'QFincidence',
+'QFincidence_overnight']
+
+add_new_data(T3_dict, merged_dict, T3_map, "T3") # add T3 data to merged_dict
+dynamic_field_adder(merged_dict, "T3")  # add the dynamic fields (gaps, overnight) to merged_dict, assuming T3 is latest data
+# excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_3_data_sets) # excel export of merged_dict
 len_of_merged_dict = len(merged_dict)
 rows_in_merged_xls = row_counter('merged.xlsx')
 print(f'len of merged_dict is {len_of_merged_dict} whereas excel file has {rows_in_merged_xls} rows.')
@@ -642,12 +665,15 @@ excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings
 
 
 
+# STEPS IN LOOP
+# import old data from xls, store in dict as D1
+# download new data, store in dict as D2
+# merge, create report, send email
 
 
 
-# NEXT STEPS
-# create a dict with all 3 data sets
-    # amend 'add_data' function so it will take T2 or T3 data (currently only T2)
+
+
 
 
 
