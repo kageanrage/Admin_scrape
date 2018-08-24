@@ -364,15 +364,19 @@ def create_merged_dict_with_old_data(old_data_dict, old_data_mapping_dict):
 
 def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
     for k, v in new_data_dict.items():
-        nested_dict = {} # blank dict which we will add to merged_dict at the end of each loop
         if k not in merged_data_dict.keys():   # if a totally new project
+            # print(f'{k} not found in merged so must be new')
+            nested_dict = {}  # blank dict which we will add to merged_dict at the end of each loop
             for nk, nv in v.items():    # loop through the keys and values of the project
-                # print(nk, nv)
+                # print(f'{k} has key {nk}, value {nv}')
                 equiv = new_data_mapping_dict.get(nk)
+                # print(f'equiv is {equiv}')
                 nested_dict.setdefault(equiv, nv)
-                nested_dict.setdefault('Completes_T1', 0)
-                nested_dict.setdefault('Screen Outs_T1', 0)
-                nested_dict.setdefault('Quota Fulls_T1', 0)
+                nested_dict.setdefault('Completes_T1', 0)  # setting to blank as old data doesn't exist
+                nested_dict.setdefault('Screen Outs_T1', 0) # setting to blank as old data doesn't exist
+                nested_dict.setdefault('Quota Fulls_T1', 0) # setting to blank as old data doesn't exist
+            merged_data_dict.setdefault(k, nested_dict)
+
         else:
             # print(f'{k} found in merged_dict.keys, attempting to add to it')
             for nk, nv in v.items():    # loop through the keys and values of the project
@@ -382,7 +386,7 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                     # print(f'adding to {k}: {equiv} = {nv}')
                     merged_data_dict[k][equiv] = nv
 
-        merged_data_dict.setdefault(k, nested_dict)
+
 
 
 def dynamic_field_adder(dic):  # add the dynamic fields (gaps, overnight) to merged_dict
@@ -634,7 +638,7 @@ changes_dict_headings_of_interest = [
     'Completes_gap','Screen Outs_T1','Screen Outs_T2','Screen Outs_gap','Quota Fulls_T1',
     'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
-excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest) # excel export of changes_dict using columns of interest only
+excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
 
 
 
@@ -643,7 +647,7 @@ excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings
 
 # NEXT STEPS
 # create a dict with all 3 data sets
-
+    # amend 'add_data' function so it will take T2 or T3 data (currently only T2)
 
 
 
