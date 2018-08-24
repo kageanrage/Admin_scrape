@@ -20,25 +20,21 @@ cfg = Config()      # create an instance of the Config class, essentially brings
 
 if os.getcwd() == cfg.laptop_dir:   # Using Laptop
     logging.debug('Laptop PC detected')
-    local_file = open(cfg.laptop_localfile)
-    example_soup = bs4.BeautifulSoup(local_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_new_HTML_file = open(cfg.laptop_ex_html_file)
-    example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_old_HTML_file = open(cfg.laptop_ex_old_html_file)
-    example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_newest_HTML_file = open(cfg.laptop_ex_newest_html_file)
-    example_newest_soup = bs4.BeautifulSoup(example_newest_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T1_file = open(cfg.laptop_T1)
+    T1_soup = bs4.BeautifulSoup(T1_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T2_file = open(cfg.laptop_T2)
+    T2_soup = bs4.BeautifulSoup(T2_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T3_file = open(cfg.laptop_T3)
+    T3_soup = bs4.BeautifulSoup(T3_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     logging.debug('Desktop PC detected')
-    local_file = open(cfg.desktop_localfile)
-    example_soup = bs4.BeautifulSoup(local_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_new_HTML_file = open(cfg.desktop_ex_html_file)
-    example_new_soup = bs4.BeautifulSoup(example_new_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_old_HTML_file = open(cfg.desktop_ex_old_html_file)
-    example_old_soup = bs4.BeautifulSoup(example_old_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
-    example_newest_HTML_file = open(cfg.laptop_ex_newest_html_file)
-    example_newest_soup = bs4.BeautifulSoup(example_newest_HTML_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T1_file = open(cfg.desktop_T1)
+    T1_soup = bs4.BeautifulSoup(T1_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T2_file = open(cfg.desktop_T2)
+    T2_soup = bs4.BeautifulSoup(T2_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T3_file = open(cfg.desktop_T3)
+    T3_soup = bs4.BeautifulSoup(T3_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 
 def download_soup():
@@ -374,9 +370,9 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
                 # print(nk, nv)
                 equiv = new_data_mapping_dict.get(nk)
                 nested_dict.setdefault(equiv, nv)
-                nested_dict.setdefault('Completes_Original', 0)
-                nested_dict.setdefault('Screen Outs_Original', 0)
-                nested_dict.setdefault('Quota Fulls_Original', 0)
+                nested_dict.setdefault('Completes_T1', 0)
+                nested_dict.setdefault('Screen Outs_T1', 0)
+                nested_dict.setdefault('Quota Fulls_T1', 0)
         else:
             # print(f'{k} found in merged_dict.keys, attempting to add to it')
             for nk, nv in v.items():    # loop through the keys and values of the project
@@ -389,15 +385,15 @@ def add_new_data(new_data_dict, merged_data_dict, new_data_mapping_dict):
         merged_data_dict.setdefault(k, nested_dict)
 
 
-def dynamic_field_adder(dict):  #add the dynamic fields (gaps, overnight) to merged_dict
-    for k, v in dict.items():
-        c_gap = int(v['Completes_Revised']) - int(v['Completes_Original'])
+def dynamic_field_adder(dic):  # add the dynamic fields (gaps, overnight) to merged_dict
+    for k, v in dic.items():
+        c_gap = int(v['Completes_T2']) - int(v['Completes_T1'])
         v['Completes_gap'] = c_gap
         # print(f'Completes Gap for {k} is {c_gap}')
-        s_gap = int(v['Screen Outs_Revised']) - int(v['Screen Outs_Original'])
+        s_gap = int(v['Screen Outs_T2']) - int(v['Screen Outs_T1'])
         v['Screen Outs_gap'] = s_gap
         # print(f'Screen Outs Gap for {k} is {s_gap}')
-        q_gap = int(v['Quota Fulls_Revised']) - int(v['Quota Fulls_Original'])
+        q_gap = int(v['Quota Fulls_T2']) - int(v['Quota Fulls_T1'])
         v['Quota Fulls_gap'] = q_gap
         # print(f'Quota Fulls Gap for {k} is {q_gap}')
         try:
@@ -560,50 +556,45 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 ################################################
 # THIS IS WHERE EVERYTHING GETS CREATED
 
-mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
-original_dict = create_masterDict(mo_original)
-excel_export_dict(original_dict, 'original.xlsx')
-len_of_mo_original = len(mo_original)
-len_of_original_dict = len(original_dict)
-rows_in_original_xls = row_counter('original.xlsx')
-print(f'len of mo_original is {len_of_mo_original} original_dict is {len_of_original_dict} whereas excel file has {rows_in_original_xls} rows.')
+mo_T1 = process_soup(T1_soup, 'mo_T1_string.txt')   #parameter: newSoup or T1_soup for testing
+T1_dict = create_masterDict(mo_T1)
+excel_export_dict(T1_dict, 'T1.xlsx')
+len_of_mo_T1 = len(mo_T1)
+len_of_T1_dict = len(T1_dict)
+rows_in_T1_xls = row_counter('T1.xlsx')
+print(f'len of mo_T1 is {len_of_mo_T1} T1_dict is {len_of_T1_dict} whereas excel file has {rows_in_T1_xls} rows.')
 
 
-mo_new = process_soup(example_new_soup, 'mo_new_string.txt')
-latest_dict = create_masterDict(mo_new)
-excel_export_dict(latest_dict, 'latest.xlsx')
-len_of_mo_new = len(mo_new)
-len_of_latest_dict = len(latest_dict)
-rows_in_latest_xls = row_counter('latest.xlsx')
-print(f'len of mo_latest is {len_of_mo_latest} latest_dict is {len_of_latest_dict} whereas excel file has {rows_in_latest_xls} rows.')
+mo_T2 = process_soup(T2_soup, 'mo_T2_string.txt')
+T2_dict = create_masterDict(mo_T2)
+excel_export_dict(T2_dict, 'T2.xlsx')
+len_of_mo_T2 = len(mo_T2)
+len_of_T2_dict = len(T2_dict)
+rows_in_T2_xls = row_counter('T2.xlsx')
+print(f'len of mo_T2 is {len_of_mo_T2} T2_dict is {len_of_T2_dict} whereas excel file has {rows_in_T2_xls} rows.')
 
 
-mo_newest = process_soup(example_newest_soup, 'example_newest_string.txt')
-newest_dict = create_masterDict(mo_newest)
-excel_export_dict(newest_dict, 'newest.xlsx')
-len_of_mo_newest = len(mo_newest)
-len_of_newest_dict = len(newest_dict)
-rows_in_newest_xls = row_counter('newest.xlsx')
-print(f'len of mo_newest is {len_of_mo_newest} newest_dict is {len_of_newest_dict} whereas excel file has {rows_in_newest_xls} rows.')
-
+mo_T3 = process_soup(T3_soup, 'T3_string.txt')
+T3_dict = create_masterDict(mo_T3)
+excel_export_dict(T3_dict, 'T3.xlsx')
+len_of_mo_T3 = len(mo_T3)
+len_of_T3_dict = len(T3_dict)
+rows_in_T3_xls = row_counter('T3.xlsx')
+print(f'len of mo_T3 is {len_of_mo_T3} T3_dict is {len_of_T3_dict} whereas excel file has {rows_in_T3_xls} rows.')
 
 
 # now to create merged dict
 
 # first I need MAPPING DICTS: dictionaries which indicate which variable in the old/new data dictionaries respectively
 # should be mapped to which variable in the merged dict
-old_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
-new_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
+T1_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
+T2_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
 
 
-merged_dict = create_merged_dict_with_old_data(original_dict, old_map)
-
+merged_dict = create_merged_dict_with_old_data(T1_dict, T1_map)
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
-
-add_new_data(latest_dict, merged_dict, new_map)
-
+add_new_data(T2_dict, merged_dict, T2_map)
 # now let's add the formula-calculated fields within each dict
-
 merged_dict_headings = ['URL',
 'Survey name',
 'Alias',
@@ -612,14 +603,14 @@ merged_dict_headings = ['URL',
 'junk',
 'Expected LOI',
 'Actual LOI',
-'Completes_Original',
-'Completes_Revised',
+'Completes_T1',
+'Completes_T2',
 'Completes_gap',
-'Screen Outs_Original',
-'Screen Outs_Revised',
+'Screen Outs_T1',
+'Screen Outs_T2',
 'Screen Outs_gap',
-'Quota Fulls_Original',
-'Quota Fulls_Revised',
+'Quota Fulls_T1',
+'Quota Fulls_T2',
 'Quota Fulls_gap',
 'Live on site',
 'incidence',
@@ -627,34 +618,31 @@ merged_dict_headings = ['URL',
 'QFincidence',
 'QFincidence_overnight',
                         ]
-
 dynamic_field_adder(merged_dict)  # add the dynamic fields (gaps, overnight) to merged_dict
-
-# excel_export_mergedDict(merged_dict, 'merged_dict.xlsx', merged_dict_headings) # excel export of merged_dict
+excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings) # excel export of merged_dict
+len_of_merged_dict = len(merged_dict)
+rows_in_merged_xls = row_counter('merged.xlsx')
+print(f'len of merged_dict is {len_of_merged_dict} whereas excel file has {rows_in_merged_xls} rows.')
 
 
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
-
 changes_dict = changes_dict_creator(merged_dict)
 
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
-
-
 changes_dict_headings_of_interest = [
-'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_Original','Completes_Revised',
-    'Completes_gap','Screen Outs_Original','Screen Outs_Revised','Screen Outs_gap','Quota Fulls_Original',
-    'Quota Fulls_Revised','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
+'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_T1','Completes_T2',
+    'Completes_gap','Screen Outs_T1','Screen Outs_T2','Screen Outs_gap','Quota Fulls_T1',
+    'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
-
-
 excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest) # excel export of changes_dict using columns of interest only
 
 
-# I'll rename data variables to T1-T3 as it's currently so confusing
-# now that regex is sorted, let's build a mergedDict and scrutinise to make sure all data is there
 
 
 
+
+# NEXT STEPS
+# create a dict with all 3 data sets
 
 
 
@@ -673,12 +661,12 @@ excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings
 # First we set up the original variables, so this happens outside of the while loop as a one-off
 
 # newSoup = download_soup()     #toggle off for test mode
-mo_original = process_soup(example_old_soup, 'mo_original_string.txt')   #parameter: newSoup or example_old_soup for testing
-#logging.debug('example_soup looks like this:\n\n',example_soup)
-original10 = create_top_list(mo_original, 10)   #match object, desired number of projects in list
+mo_T1 = process_soup(T1_soup, 'mo_original_string.txt')   #parameter: newSoup or T1_soup for testing
+#logging.debug('T1_soup looks like this:\n\n',T1_soup)
+original10 = create_top_list(mo_T1, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
     #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(example_new_soup, 'mo2_string.txt')   # parameter can be newSoup for live or example_new_soup for test mode
+    mo2 = process_soup(T2_soup, 'mo2_string.txt')   # parameter can be newSoup for live or T2_soup for test mode
     latest10 = create_top_list(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
@@ -701,8 +689,8 @@ while 1:     #this is the loop that endlessly repeats
 
 
 """
-original20 = create_top_list(mo_original, 20)   #match object, desired number of projects in list
-new20 = create_top_list(mo_new, 20)
+original20 = create_top_list(mo_T1, 20)   #match object, desired number of projects in list
+new20 = create_top_list(mo_T2, 20)
 print("new projects are: ", new_project_search(new20, original20))
 print("original20 looks like this: ",original20)
 print("the job# in the first item in original20 looks like this: ", original20[0][3])
@@ -734,8 +722,8 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 
 
 # logging.debug('Example sequence')
-# exampleOldMo = process_soup(example_old_soup, 'mo_old_string.txt')
-# exampleNewMo = process_soup(example_new_soup, 'mo_new_string.txt')
+# exampleOldMo = process_soup(T1_soup, 'mo_old_string.txt')
+# exampleNewMo = process_soup(T2_soup, 'mo_new_string.txt')
 # exampleOriginal10 = create_top_list(exampleOldMo, 10)   #match object, desired number of projects in list
 # print('ExampleOriginal10:\n', exampleOriginal10,'\n')
 # exampleLatest10 = create_top_list(exampleNewMo, 10)   #match object, desired number of projects in list
