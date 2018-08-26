@@ -473,10 +473,11 @@ def old_data_excel_to_dict_importer(excel_filename):  # given excel filename, cr
     headers_dict = excel_headings_grabber(excel_filename)
     num_of_cols = column_counter(excel_filename)
     num_of_rows = row_counter(excel_filename)
+    # print(f'#cols is {num_of_cols} and #rows is {num_of_rows}')
     for k, v in headers_dict.items():
-        if v == 'Project number':
-            project_number_column = k
-            logging.debug(f'P- number is in column {project_number_column}')
+        if v == 'URL':
+            url_column = k
+            # logging.debug(f'URL is in column {url_column}')
     for row in range(2,num_of_rows+1):
         nested_dict = {}
         for column in range(1,num_of_cols+1):
@@ -486,9 +487,9 @@ def old_data_excel_to_dict_importer(excel_filename):  # given excel filename, cr
             nested_key = headers_dict[column]
             nested_val = v
             nested_dict.setdefault(nested_key, nested_val)
-            if column == project_number_column:
-                job_number = v
-        dic.setdefault(job_number, nested_dict)
+            if column == url_column:
+                url = v
+        dic.setdefault(url, nested_dict)
     return dic
 
 
@@ -504,14 +505,16 @@ def column_counter(xls_filename): #checks row 1 and counts how many cells have d
             cols += 1 # check the next column along
         else:    # if no data in the cell, then that's the last column, so break
             break
-    return int(cols)-1 # need to be minus one because it increments cols, then realises it's an empty cell
+    c = int(cols)-1  # need to be minus one because it increments cols, then realises it's an empty cell
+    logging.debug(f'# cols = {c}')
+    return c
 
 
 def row_counter(xls_filename): #checks column 1 and counts how many cells have data, therefore how many rows in xls
     logging.debug('Counting rows in xls')
     wb = openpyxl.load_workbook(xls_filename)
     sheet = wb.active
-    rows = 1 # start from 1st column
+    rows = 1  # start from 1st column
     while 1:
         check_cell = sheet.cell(row = rows, column = 1)
         v = check_cell.value
@@ -519,7 +522,9 @@ def row_counter(xls_filename): #checks column 1 and counts how many cells have d
             rows += 1  # check the next column along
         else:    # if no data in the cell, then that's the last row, so break
              break
-    return int(rows)-1  # need to be minus one because it increments rows, then realises it's an empty cell
+    r = int(rows)-1 # need to be minus one because it increments rows, then realises it's an empty cell
+    logging.debug(f'#rows = {r}')
+    return r
 
 
 def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a dictionary showing col# & heading
@@ -539,11 +544,24 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
     return dic
 
 
+def create_stripped_dict(merged_data_dict, strip_mapping_dict):
+    stripped = {}
+    for k, v in merged_data_dict.items():
+        nested_dict = {}  # blank dict which we will add to stripped_dict at the end of each loop
+        for nk, nv in v.items():
+            # print(nk, nv)
+            if nk in strip_mapping_dict.keys():
+                equiv = strip_mapping_dict.get(nk)
+                # print(f'project {k} has {nk} re-assigned as {equiv} equal to {nv}')
+                nested_dict.setdefault(equiv, nv)
+        stripped.setdefault(k, nested_dict)
+    return stripped
 
 
 
 
-"""
+
+
 ################################################
 # TEST MODE - THIS IS WHERE EVERYTHING GETS CREATED
 
@@ -581,7 +599,7 @@ print(f'len of mo_T3 is {len_of_mo_T3} T3_dict is {len_of_T3_dict} whereas excel
 T1_map = mapping_dict_creator('mapping.xlsx', 3, 17, 1, 3)
 T2_map = mapping_dict_creator('mapping.xlsx', 3, 17, 4, 6)
 T3_map = mapping_dict_creator('mapping.xlsx', 3, 17, 7, 9)
-
+strip_map = mapping_dict_creator('mapping.xlsx', 3, 17, 10, 12)
 
 merged_dict = create_merged_dict_with_old_data(T1_dict, T1_map)
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
@@ -655,7 +673,7 @@ changes_dict_headings_of_interest = [
 ]
 excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
 
-"""
+
 
 
 
@@ -666,13 +684,23 @@ excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings
 # STEPS IN LOOP
 # 1 import old data from xls, store in dict as D1
 # 2 download new data, store in dict as D2
-# 3 merge, create report, send email
+# 3 create merged file
+# 4 create report showing changes only
+# 5 send email
 
 # 1 import old data from xls, store in dict as D1
 
 imported_dict = old_data_excel_to_dict_importer('merged_to_import.xlsx')
+# create a dic which is only the stripped out fields of interest i.e. stripping back from a merged dict to unmerged
+# should be able to do this through another mapping table.
+stripped_dict = create_stripped_dict(imported_dict, strip_map)
+logging.debug('printing stripped dict')
+pprint.pprint(stripped_dict)
+
 
 # 2 download new data, store in dict as D2
+
+"""
 
 D2_soup = download_soup()     # toggle off for test mode
 mo_D2 = process_soup(D2_soup, 'D2_string.txt', new_site_regex)   # parameter: D2_soup or T1_soup for testing, plus string txt filename
@@ -682,6 +710,15 @@ len_of_mo_D2 = len(mo_D2)
 len_of_D2_dict = len(D2_dict)
 rows_in_D2_xls = row_counter('D2.xlsx')
 print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
+
+"""
+
+# 3 create merged file
+
+
+
+
+
 
 
 
