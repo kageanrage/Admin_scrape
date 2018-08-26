@@ -15,6 +15,12 @@ logging.debug('Checking if Laptop or Desktop (and opening relevant local HTML fi
 
 cfg = Config()      # create an instance of the Config class, essentially brings private config data into play
 
+old_site_regex = re.compile(
+'<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,75})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # doesn't cater for abbreviated URL prefix (changed 26-8 on site)
+new_site_regex = re.compile(
+'<a href="/admin/survey/details/(.{36})">(.{1,75})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,200})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # caters for abbreviated URL prefix (changed 26-8 on site)
+
+
 # changes logic depending on if I'm using Laptop or Desktop
 # Example files - using saved HTML in 2 different directories. Toggle on for test mode, or off for live.
 
@@ -56,7 +62,7 @@ def download_soup():
     return soup
 
 
-def process_soup(soup, string_txt_filename):
+def process_soup(soup, string_txt_filename, regex):
     logging.debug('Starting table isolation')
     table_only = soup.select(
         'table')  # isolates the table (which is the only bit I need) from the HTML. Type is list, was expecting BS4 object
@@ -70,23 +76,10 @@ def process_soup(soup, string_txt_filename):
     # logging.debug('table_string looks like this:\n\n\n',table_string)
     # May not be able to isolate further within BS4 so switching to regex to parse.
     # TO DO: create a regex to identify each project on the Admin page
-    logging.debug('Defining RegEx')
-    # projects_regex = re.compile('<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)')
-    #projects_regex = re.compile(
-    #    '<a href="(.{80,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="clickable">(\d+)<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # alternative Regex which incorporates 'True' or 'False' being on site
-    # projects_regex = re.compile(
-    # '<a href="(.{10,105})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,50})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,130})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 3rd iteration of regex
-    # projects_regex = re.compile(
-    # '<a href="(.{10,89})">(.{3,50})<\/a><\/td><td class="clickable">(.{3,20})<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 4th iteration of regex
-    # projects_regex = re.compile(
-    # '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{3,70})<\/a><\/td><td class="clickable">(.{3,70}?)<\/td><td class="clickable">(.{3,10})<\/td><td class="clickable">(.{3,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
-    projects_regex = re.compile(
-    '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,75})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">') # 5th iteration of regex
-
 
     # TO DO: Return all examples of regex findall search
     logging.debug('Conducting regex findall search')
-    mo = projects_regex.findall(table_string)
+    mo = regex.findall(table_string)
     #print('newly created mo looks like this:\n\n',mo)
     return mo
 
@@ -258,9 +251,9 @@ def email_body_content(list_of_newbies):
 
 
 def dict_creator(value_list):   # this function takes in a MO from the regex and creates and returns a per-project dict, with keys as per the headings below
-    headings = ['URL','Survey name','Alias','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site']
+    headings = ['URL', 'Survey name', 'Alias', 'Project number', 'Client name', 'junk', 'Expected LOI', 'Actual LOI', 'Completes', 'Screen Outs', 'Quota Fulls', 'Live on site']
     new_dict = {}
-    for i in range(0,len(headings)):
+    for i in range(0, len(headings)):
         new_dict.setdefault(headings[i], value_list[i])
     completes = int(value_list[8])
     quota_fulls = int(value_list[10])
@@ -306,7 +299,7 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
     for column in range(0, len(headings_list)):
         cell = sheet.cell(row=row, column=column+1)
         cell.value = headings_list[column]
-    make_bold(sheet, wb, sheet['A1':'N1'])    # Calls the make_bold function on first row of excel sheet
+    make_bold(sheet, wb, sheet['A1':'O1'])    # Calls the make_bold function on first row of excel sheet
 
     # this bit then populates the rest of the sheet with the masterDict content
     for row, item_tuple in enumerate(dic.items(), 2):
@@ -550,12 +543,11 @@ def excel_headings_grabber(xls_filename): # checks row 1 of xls and returns a di
 
 
 
-
-
+"""
 ################################################
-# THIS IS WHERE EVERYTHING GETS CREATED
+# TEST MODE - THIS IS WHERE EVERYTHING GETS CREATED
 
-mo_T1 = process_soup(T1_soup, 'mo_T1_string.txt')   #parameter: newSoup or T1_soup for testing
+mo_T1 = process_soup(T1_soup, 'T1_string.txt', old_site_regex)   #parameter: newSoup or T1_soup for testing
 T1_dict = create_masterDict(mo_T1)
 excel_export_dict(T1_dict, 'T1.xlsx')
 len_of_mo_T1 = len(mo_T1)
@@ -564,7 +556,7 @@ rows_in_T1_xls = row_counter('T1.xlsx')
 print(f'len of mo_T1 is {len_of_mo_T1} T1_dict is {len_of_T1_dict} whereas excel file has {rows_in_T1_xls} rows.')
 
 
-mo_T2 = process_soup(T2_soup, 'mo_T2_string.txt')
+mo_T2 = process_soup(T2_soup, 'T2_string.txt', old_site_regex)
 T2_dict = create_masterDict(mo_T2)
 excel_export_dict(T2_dict, 'T2.xlsx')
 len_of_mo_T2 = len(mo_T2)
@@ -573,7 +565,7 @@ rows_in_T2_xls = row_counter('T2.xlsx')
 print(f'len of mo_T2 is {len_of_mo_T2} T2_dict is {len_of_T2_dict} whereas excel file has {rows_in_T2_xls} rows.')
 
 
-mo_T3 = process_soup(T3_soup, 'T3_string.txt')
+mo_T3 = process_soup(T3_soup, 'T3_string.txt', old_site_regex)
 T3_dict = create_masterDict(mo_T3)
 excel_export_dict(T3_dict, 'T3.xlsx')
 len_of_mo_T3 = len(mo_T3)
@@ -645,8 +637,8 @@ merged_dict_headings_3_data_sets = ['URL',
 
 add_new_data(T3_dict, merged_dict, T3_map, "T3") # add T3 data to merged_dict
 dynamic_field_adder(merged_dict, "T3")  # add the dynamic fields (gaps, overnight) to merged_dict, assuming T3 is latest data
-# excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
-excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_3_data_sets) # excel export of merged_dict
+excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+# excel_export_mergedDict(merged_dict, 'merged.xlsx', merged_dict_headings_3_data_sets) # excel export of merged_dict
 len_of_merged_dict = len(merged_dict)
 rows_in_merged_xls = row_counter('merged.xlsx')
 print(f'len of merged_dict is {len_of_merged_dict} whereas excel file has {rows_in_merged_xls} rows.')
@@ -663,40 +655,42 @@ changes_dict_headings_of_interest = [
 ]
 excel_export_mergedDict(changes_dict, 'changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
 
+"""
 
+
+
+
+################################################
+# LIVE MODE - THIS IS WHERE EVERYTHING GETS CREATED
 
 # STEPS IN LOOP
-# import old data from xls, store in dict as D1
-# download new data, store in dict as D2
-# merge, create report, send email
+# 1 import old data from xls, store in dict as D1
+# 2 download new data, store in dict as D2
+# 3 merge, create report, send email
+
+# 1 import old data from xls, store in dict as D1
+
+imported_dict = old_data_excel_to_dict_importer('merged_to_import.xlsx')
+
+# 2 download new data, store in dict as D2
+
+D2_soup = download_soup()     # toggle off for test mode
+mo_D2 = process_soup(D2_soup, 'D2_string.txt', new_site_regex)   # parameter: D2_soup or T1_soup for testing, plus string txt filename
+D2_dict = create_masterDict(mo_D2)
+excel_export_dict(D2_dict, 'D2.xlsx')
+len_of_mo_D2 = len(mo_D2)
+len_of_D2_dict = len(D2_dict)
+rows_in_D2_xls = row_counter('D2.xlsx')
+print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-'''
-# 2017 loop
-### This is where the levers get pulled.
-
-# First we set up the original variables, so this happens outside of the while loop as a one-off
-
-# newSoup = download_soup()     #toggle off for test mode
-mo_T1 = process_soup(T1_soup, 'mo_original_string.txt')   #parameter: newSoup or T1_soup for testing
-#logging.debug('T1_soup looks like this:\n\n',T1_soup)
+"""
 original10 = create_top_list(mo_T1, 10)   #match object, desired number of projects in list
 while 1:     #this is the loop that endlessly repeats
     #newSoup = download_soup()                # download latest HTML; toggle off for test mode
-    mo2 = process_soup(T2_soup, 'mo2_string.txt')   # parameter can be newSoup for live or T2_soup for test mode
+    mo2 = process_soup(T2_soup, 'mo2_string.txt', old_site_regex)   # parameter can be newSoup for live or T2_soup for test mode
     latest10 = create_top_list(mo2, 10)
     newbies = new_project_search(latest10,original10)   #parameters should be latest10 and original10
     print('Latest10 looks like this:\n',latest10)
@@ -707,10 +701,10 @@ while 1:     #this is the loop that endlessly repeats
     original10 = latest10    #overwrite original10 with the latest10
     print('End of program, waiting 60 sec')
     time.sleep(1000)     #1000 for test mode
+"""
 
 
 
-'''
 
 
 
@@ -737,6 +731,7 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 
 
 
+"""
 
 #TO DO: compare original10 and latest10 and flag any 'zero to 1' completes movement(new function)
 
@@ -752,8 +747,8 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 
 
 # logging.debug('Example sequence')
-# exampleOldMo = process_soup(T1_soup, 'mo_old_string.txt')
-# exampleNewMo = process_soup(T2_soup, 'mo_new_string.txt')
+# exampleOldMo = process_soup(T1_soup, 'mo_old_string.txt', old_site_regex)
+# exampleNewMo = process_soup(T2_soup, 'mo_new_string.txt', old_site_regex)
 # exampleOriginal10 = create_top_list(exampleOldMo, 10)   #match object, desired number of projects in list
 # print('ExampleOriginal10:\n', exampleOriginal10,'\n')
 # exampleLatest10 = create_top_list(exampleNewMo, 10)   #match object, desired number of projects in list
@@ -761,4 +756,5 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 # exampleNewbies = new_project_search(exampleLatest10, exampleOriginal10)
 # print('The example new projects are:\n',exampleNewbies,'\n')
 # send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',str(exampleNewbies))
+"""
 
