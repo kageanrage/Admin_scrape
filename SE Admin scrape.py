@@ -727,11 +727,31 @@ rows_in_D2_backup_xls = row_counter('export/D2_backup.xlsx')
 print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D2_backup_dict} whereas excel file has {rows_in_D2_backup_xls} rows.')
 
 
+# 3 create merged/changes files
+# This section below needs to be debugged carefully as it's copy/pasted from above.
+# To test/debug, I should create a mergedDict where recent (T3) data is used then strip that so that changesDict is smaller
+# and more comprehensible to test
+
+D_merged_dict = create_merged_dict_with_old_data(stripped_dict, T1_map)
+# now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
+add_new_data(D2_backup_dict, D_merged_dict, T2_map, "T2")
+dynamic_field_adder(D_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict, assuming T3 is latest data
+excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+len_of_D_merged_dict = len(D_merged_dict)
+rows_in_D_merged_xls = row_counter('export/D_merged.xlsx')
+print(f'len of D_merged_dict is {len_of_D_merged_dict} whereas excel file has {rows_in_D_merged_xls} rows.')
 
 
+# If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
+D_changes_dict = changes_dict_creator(D_merged_dict)
 
-# 3 create merged file
-
+# only certain headings are of interest in the new 'changes' excel export, they are in this list
+changes_dict_headings_of_interest = [
+'Survey name','Project number','Client name','Expected LOI','Actual LOI','Completes_T1','Completes_T2',
+    'Completes_gap','Screen Outs_T1','Screen Outs_T2','Screen Outs_gap','Quota Fulls_T1',
+    'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
+]
+excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
 
 
 
