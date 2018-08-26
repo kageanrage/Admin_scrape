@@ -84,6 +84,15 @@ def process_soup(soup, string_txt_filename, regex):
     return mo
 
 
+def process_string(string_txt_filename, regex):
+    table_string_file = open(string_txt_filename)
+    table_string_content = table_string_file.read()
+    logging.debug('Conducting regex findall search')
+    mo = regex.findall(table_string_content)
+    print('newly created mo looks like this:\n\n',mo)
+    return mo
+
+
 def list_creator(valueList):   #this function takes in a MO from the regex and creates and returns a per-project list, ordered as per the headings list below
     #headings = ['URL','Alias','Survey name','Project number','Client name','junk','Expected LOI','Actual LOI','Completes','Screen Outs','Quota Fulls','Live on site'] #here I've added 'Live on Site'
     new_list = []
@@ -696,8 +705,8 @@ stripped_dict = create_stripped_dict(imported_dict, strip_map)
 
 # 2 download new data, store in dict as D2
 
+# here is the code to actually do the download:
 """
-
 D2_soup = download_soup()     # toggle off for test mode
 mo_D2 = process_soup(D2_soup, 'export/D2_string.txt', new_site_regex)   # parameter: D2_soup or T1_soup for testing, plus string txt filename
 D2_dict = create_masterDict(mo_D2)
@@ -706,8 +715,20 @@ len_of_mo_D2 = len(mo_D2)
 len_of_D2_dict = len(D2_dict)
 rows_in_D2_xls = row_counter('export/D2.xlsx')
 print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
-
 """
+
+# or to just use the pre-downloaded table string:
+mo_D2_backup = process_string('export/D2_string_backup.txt', new_site_regex)
+D2_backup_dict = create_masterDict(mo_T3)
+excel_export_dict(D2_backup_dict, 'export/D2_backup.xlsx')
+len_of_mo_D2_backup = len(mo_D2_backup)
+len_of_D2_backup_dict = len(D2_backup_dict)
+rows_in_D2_backup_xls = row_counter('export/D2_backup.xlsx')
+print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D2_backup_dict} whereas excel file has {rows_in_D2_backup_xls} rows.')
+
+
+
+
 
 # 3 create merged file
 
