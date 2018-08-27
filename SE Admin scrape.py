@@ -830,7 +830,7 @@ excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_di
 len_of_D_changes_dict = len(D_changes_dict)
 rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
 print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
-email_html_table()
+# email_html_table()    # still bugs to iron out
 
 
 
