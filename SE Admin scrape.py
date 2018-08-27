@@ -709,7 +709,7 @@ stripped_dict = create_stripped_dict(imported_dict, strip_map)
 excel_export_dict(stripped_dict, 'export/stripped.xlsx')
 len_of_stripped_dict = len(stripped_dict)
 # print(f'len of stripped_dict is {len_of_stripped_dict}')
-# rows_in_stripped_xls = row_counter('export/stripped.xlsx')
+rows_in_stripped_xls = row_counter('export/stripped.xlsx')
 print(f'len of stripped_dict is {len_of_stripped_dict} whereas excel file has {rows_in_stripped_xls} rows.')
 
 # 2 download new data, store in dict as D2
@@ -728,7 +728,7 @@ print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel
 
 # or to just use the pre-downloaded table string:
 mo_D2_backup = process_string('export/D2_string_backup.txt', new_site_regex)
-D2_backup_dict = create_masterDict(mo_T3)
+D2_backup_dict = create_masterDict(mo_D2_backup)
 excel_export_dict(D2_backup_dict, 'export/D2_backup.xlsx')
 len_of_mo_D2_backup = len(mo_D2_backup)
 len_of_D2_backup_dict = len(D2_backup_dict)
@@ -737,9 +737,6 @@ print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D
 
 
 # 3 create merged/changes files
-# This section below needs to be debugged carefully as it's copy/pasted from above.
-# To test/debug, I should create a mergedDict where recent (T3) data is used then strip that so that changesDict is smaller
-# and more comprehensible to test
 
 D_merged_dict = create_merged_dict_with_old_data(stripped_dict, T1_map)
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
