@@ -3,6 +3,12 @@ from openpyxl.styles import Font, NamedStyle, PatternFill
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from config import Config   # this imports the config file where the private data sits
+import pandas as pd
+import csv
+from tabulate import tabulate
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
@@ -572,6 +578,59 @@ def create_stripped_dict(merged_data_dict, strip_mapping_dict):
     return stripped
 
 
+def email_html_table():
+    me = cfg.my_gmail_uname
+    password = cfg.my_gmail_pw
+    server = 'smtp.gmail.com:587'
+    you = cfg.my_work_email
+
+    text = """
+
+    Here is the update since the last run:
+    
+    {table}
+    
+    """
+
+    html = """
+    <html>
+    <head>
+    <style> 
+     table, th, td {{ border: 1px solid black; border-collapse: collapse; }}
+      th, td {{ padding: 5px; }}
+    </style>
+    </head>
+    <body>
+    <p>Here is your data:</p>
+    {table}
+
+    </body></html>
+    """
+
+    # with open('input.csv') as input_file:
+    #     reader = csv.reader(input_file)
+    #     data = list(reader)
+
+    df = pd.read_csv("export/D_changes_dict.csv")
+    col_list = list(df.columns.values)
+    data = df
+    # above line took every col inside csv as list
+    text = text.format(table=tabulate(data, headers=col_list, tablefmt="grid"))
+    html = html.format(table=tabulate(data, headers=col_list, tablefmt="html"))
+
+    message = MIMEMultipart(
+        "alternative", None, [MIMEText(text), MIMEText(html,'html')])
+
+    message['Subject'] = "Update - live projects"
+    message['From'] = me
+    message['To'] = you
+    server = smtplib.SMTP(server)
+    server.ehlo()
+    server.starttls()
+    server.login(me, password)
+    server.sendmail(me, you, message.as_string())
+    server.quit()
+
 """
 ################################################
 # TEST MODE - THIS IS WHERE EVERYTHING GETS CREATED
@@ -734,6 +793,7 @@ rows_in_D2_xls = row_counter('export/D2.xlsx')
 print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
 
 
+""""
 # or to just use the pre-downloaded table string:
 mo_D2_backup = process_string('export/D2_string_backup.txt', new_site_regex)
 D2_backup_dict = create_masterDict(mo_D2_backup)
@@ -742,7 +802,7 @@ len_of_mo_D2_backup = len(mo_D2_backup)
 len_of_D2_backup_dict = len(D2_backup_dict)
 rows_in_D2_backup_xls = row_counter('export/D2_backup.xlsx')
 print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D2_backup_dict} whereas excel file has {rows_in_D2_backup_xls} rows.')
-
+"""
 
 # 3 create merged/changes files
 
@@ -770,7 +830,7 @@ excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_di
 len_of_D_changes_dict = len(D_changes_dict)
 rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
 print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
-
+email_html_table()
 
 
 
