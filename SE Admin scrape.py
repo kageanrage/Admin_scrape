@@ -572,7 +572,7 @@ def create_stripped_dict(merged_data_dict, strip_mapping_dict):
     return stripped
 
 
-
+"""
 ################################################
 # TEST MODE - THIS IS WHERE EVERYTHING GETS CREATED
 
@@ -609,6 +609,8 @@ len_of_T4_dict = len(T4_dict)
 rows_in_T4_xls = row_counter('export/T4.xlsx')
 print(f'len of mo_T4 is {len_of_mo_T4} T4_dict is {len_of_T4_dict} whereas excel file has {rows_in_T4_xls} rows.')
 
+"""
+
 # Mapping
 T1_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 1, 3)
 T2_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 4, 6)
@@ -616,8 +618,11 @@ T3_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 7, 9)
 strip_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 10, 12)
 
 # Merging
+
+"""
 T2_T3_merged_dict = create_merged_dict_with_old_data(T2_dict, T1_map)
 add_new_data(T3_dict, T2_T3_merged_dict, T2_map, "T2")
+"""
 
 merged_dict_headings_2_data_sets = ['URL',
 'Survey name',
@@ -667,6 +672,7 @@ merged_dict_headings_3_data_sets = ['URL',
 'QFincidence',
 'QFincidence_overnight']
 
+"""
 # add_new_data(T3_dict, T2_T3_merged_dict, T3_map, "T3")  # add T3 data to make it a 3-tiered merged_dict
 dynamic_field_adder(T2_T3_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict
 excel_export_mergedDict(T2_T3_merged_dict, 'export/T2_T3_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
@@ -678,6 +684,7 @@ print(f'len of merged_dict is {len_of_merged_dict} whereas excel file has {rows_
 
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
 changes_dict = changes_dict_creator(T2_T3_merged_dict)
+"""
 
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
 changes_dict_headings_of_interest = [
@@ -685,8 +692,10 @@ changes_dict_headings_of_interest = [
     'Completes_gap','Screen Outs_T1','Screen Outs_T2','Screen Outs_gap','Quota Fulls_T1',
     'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
-excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
 
+"""
+excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
+"""
 
 
 
@@ -702,7 +711,7 @@ excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_h
 
 # 1 import old data from xls, store in dict as D1
 
-imported_dict = old_data_excel_to_dict_importer('export/T2_T3_merged_to_import.xlsx')
+imported_dict = old_data_excel_to_dict_importer('export/D_merged.xlsx')
 # create a dic which is only the stripped out fields of interest i.e. stripping back from a merged dict to unmerged
 stripped_dict = create_stripped_dict(imported_dict, strip_map)
 # pprint.pprint(stripped_dict)
@@ -710,12 +719,11 @@ excel_export_dict(stripped_dict, 'export/stripped.xlsx')
 len_of_stripped_dict = len(stripped_dict)
 # print(f'len of stripped_dict is {len_of_stripped_dict}')
 rows_in_stripped_xls = row_counter('export/stripped.xlsx')
-print(f'len of stripped_dict is {len_of_stripped_dict} whereas excel file has {rows_in_stripped_xls} rows.')
+# print(f'len of stripped_dict is {len_of_stripped_dict} whereas excel file has {rows_in_stripped_xls} rows.')
 
 # 2 download new data, store in dict as D2
 
 # here is the code to actually do the download:
-"""
 D2_soup = download_soup()     # toggle off for test mode
 mo_D2 = process_soup(D2_soup, 'export/D2_string.txt', new_site_regex)   # parameter: D2_soup or T1_soup for testing, plus string txt filename
 D2_dict = create_masterDict(mo_D2)
@@ -724,7 +732,7 @@ len_of_mo_D2 = len(mo_D2)
 len_of_D2_dict = len(D2_dict)
 rows_in_D2_xls = row_counter('export/D2.xlsx')
 print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
-"""
+
 
 # or to just use the pre-downloaded table string:
 mo_D2_backup = process_string('export/D2_string_backup.txt', new_site_regex)
@@ -740,8 +748,8 @@ print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D
 
 D_merged_dict = create_merged_dict_with_old_data(stripped_dict, T1_map)
 # now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
-add_new_data(D2_backup_dict, D_merged_dict, T2_map, "T2")
-dynamic_field_adder(D_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict, assuming T3 is latest data
+add_new_data(D2_dict, D_merged_dict, T2_map, "T2")
+dynamic_field_adder(D_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict
 excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
 len_of_D_merged_dict = len(D_merged_dict)
 rows_in_D_merged_xls = row_counter('export/D_merged.xlsx')
