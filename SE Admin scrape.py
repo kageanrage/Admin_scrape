@@ -32,6 +32,8 @@ if os.getcwd() == cfg.laptop_dir:   # Using Laptop
     T2_soup = bs4.BeautifulSoup(T2_file, "html.parser")  # turns the HTML into a beautiful soup object
     T3_file = open(cfg.laptop_T3)
     T3_soup = bs4.BeautifulSoup(T3_file, "html.parser")  # turns the HTML into a beautiful soup object
+    T4_file = open(cfg.laptop_T4)
+    T4_soup = bs4.BeautifulSoup(T4_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     logging.debug('Desktop PC detected')
@@ -41,7 +43,8 @@ elif os.getcwd() == cfg.desktop_dir:    # Using Desktop
     T2_soup = bs4.BeautifulSoup(T2_file, "html.parser")  # turns the HTML into a beautiful soup object
     T3_file = open(cfg.desktop_T3)
     T3_soup = bs4.BeautifulSoup(T3_file, "html.parser")  # turns the HTML into a beautiful soup object
-
+    T4_file = open(cfg.desktop_T4)
+    T4_soup = bs4.BeautifulSoup(T4_file, "html.parser")  # turns the HTML into a beautiful soup object
 
 def download_soup():
     chrome_path = r'C:\Program Files\Python37\chromedriver.exe'
@@ -321,6 +324,8 @@ def excel_export_dict(dic, filename): # works with the 14 headings as per scrape
                 v = float(v)  # try to convert value to a float, so it will store numbers as numbers and not strings
             except ValueError:
                 pass  # if it's not a number and therefore returns an error, don't try to convert it to a number
+            except TypeError:
+                pass
             cell.value = v
             if (column == 13) | (column == 14):  # for all cells in column 13 or 14 (IR / QFIR)
                 cell.style = 'Percent'  # ... change cell format (style) to 'Percent', a built-in style within openpyxl
@@ -568,12 +573,10 @@ def create_stripped_dict(merged_data_dict, strip_mapping_dict):
 
 
 
-
-
-
 ################################################
 # TEST MODE - THIS IS WHERE EVERYTHING GETS CREATED
 
+# T1-T4: create mo, dict, export
 mo_T1 = process_soup(T1_soup, 'export/T1_string.txt', old_site_regex)   #parameter: newSoup or T1_soup for testing
 T1_dict = create_masterDict(mo_T1)
 excel_export_dict(T1_dict, 'export/T1.xlsx')
@@ -581,7 +584,6 @@ len_of_mo_T1 = len(mo_T1)
 len_of_T1_dict = len(T1_dict)
 rows_in_T1_xls = row_counter('export/T1.xlsx')
 print(f'len of mo_T1 is {len_of_mo_T1} T1_dict is {len_of_T1_dict} whereas excel file has {rows_in_T1_xls} rows.')
-
 
 mo_T2 = process_soup(T2_soup, 'export/T2_string.txt', old_site_regex)
 T2_dict = create_masterDict(mo_T2)
@@ -591,7 +593,6 @@ len_of_T2_dict = len(T2_dict)
 rows_in_T2_xls = row_counter('export/T2.xlsx')
 print(f'len of mo_T2 is {len_of_mo_T2} T2_dict is {len_of_T2_dict} whereas excel file has {rows_in_T2_xls} rows.')
 
-
 mo_T3 = process_soup(T3_soup, 'export/T3_string.txt', old_site_regex)
 T3_dict = create_masterDict(mo_T3)
 excel_export_dict(T3_dict, 'export/T3.xlsx')
@@ -600,20 +601,24 @@ len_of_T3_dict = len(T3_dict)
 rows_in_T3_xls = row_counter('export/T3.xlsx')
 print(f'len of mo_T3 is {len_of_mo_T3} T3_dict is {len_of_T3_dict} whereas excel file has {rows_in_T3_xls} rows.')
 
+mo_T4 = process_soup(T4_soup, 'export/T4_string.txt', old_site_regex)
+T4_dict = create_masterDict(mo_T4)
+excel_export_dict(T4_dict, 'export/T4.xlsx')
+len_of_mo_T4 = len(mo_T4)
+len_of_T4_dict = len(T4_dict)
+rows_in_T4_xls = row_counter('export/T4.xlsx')
+print(f'len of mo_T4 is {len_of_mo_T4} T4_dict is {len_of_T4_dict} whereas excel file has {rows_in_T4_xls} rows.')
 
-# now to create merged dict
-
-# first I need MAPPING DICTS: dictionaries which indicate which variable in the old/new data dictionaries respectively
-# should be mapped to which variable in the merged dict
+# Mapping
 T1_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 1, 3)
 T2_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 4, 6)
 T3_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 7, 9)
 strip_map = mapping_dict_creator('public/mapping.xlsx', 3, 17, 10, 12)
 
-merged_dict = create_merged_dict_with_old_data(T1_dict, T1_map)
-# now add all the new data, bearing in mind that the project may or may not already exist in merged_dict
-add_new_data(T2_dict, merged_dict, T2_map, "T2")
-# now let's add the formula-calculated fields within each dict
+# Merging
+T2_T3_merged_dict = create_merged_dict_with_old_data(T2_dict, T1_map)
+add_new_data(T3_dict, T2_T3_merged_dict, T2_map, "T2")
+
 merged_dict_headings_2_data_sets = ['URL',
 'Survey name',
 'Alias',
@@ -662,17 +667,17 @@ merged_dict_headings_3_data_sets = ['URL',
 'QFincidence',
 'QFincidence_overnight']
 
-add_new_data(T3_dict, merged_dict, T3_map, "T3")  # add T3 data to merged_dict
-dynamic_field_adder(merged_dict, "T3")  # add the dynamic fields (gaps, overnight) to merged_dict, assuming T3 is latest data
-excel_export_mergedDict(merged_dict, 'export/merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+# add_new_data(T3_dict, T2_T3_merged_dict, T3_map, "T3")  # add T3 data to make it a 3-tiered merged_dict
+dynamic_field_adder(T2_T3_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict
+excel_export_mergedDict(T2_T3_merged_dict, 'export/T2_T3_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
 # excel_export_mergedDict(merged_dict, 'export/merged.xlsx', merged_dict_headings_3_data_sets) # excel export of merged_dict
-len_of_merged_dict = len(merged_dict)
-rows_in_merged_xls = row_counter('export/merged.xlsx')
+len_of_merged_dict = len(T2_T3_merged_dict)
+rows_in_merged_xls = row_counter('export/T2_T3_merged.xlsx')
 print(f'len of merged_dict is {len_of_merged_dict} whereas excel file has {rows_in_merged_xls} rows.')
 
 
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
-changes_dict = changes_dict_creator(merged_dict)
+changes_dict = changes_dict_creator(T2_T3_merged_dict)
 
 # only certain headings are of interest in the new 'changes' excel export, they are in this list
 changes_dict_headings_of_interest = [
@@ -681,8 +686,6 @@ changes_dict_headings_of_interest = [
     'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
 excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
-
-
 
 
 
@@ -699,9 +702,15 @@ excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_h
 
 # 1 import old data from xls, store in dict as D1
 
-imported_dict = old_data_excel_to_dict_importer('export/merged_to_import.xlsx')
+imported_dict = old_data_excel_to_dict_importer('export/T2_T3_merged_to_import.xlsx')
 # create a dic which is only the stripped out fields of interest i.e. stripping back from a merged dict to unmerged
 stripped_dict = create_stripped_dict(imported_dict, strip_map)
+# pprint.pprint(stripped_dict)
+excel_export_dict(stripped_dict, 'export/stripped.xlsx')
+len_of_stripped_dict = len(stripped_dict)
+# print(f'len of stripped_dict is {len_of_stripped_dict}')
+# rows_in_stripped_xls = row_counter('export/stripped.xlsx')
+print(f'len of stripped_dict is {len_of_stripped_dict} whereas excel file has {rows_in_stripped_xls} rows.')
 
 # 2 download new data, store in dict as D2
 
@@ -751,10 +760,11 @@ changes_dict_headings_of_interest = [
     'Completes_gap','Screen Outs_T1','Screen Outs_T2','Screen Outs_gap','Quota Fulls_T1',
     'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
+
 excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
-
-
-
+len_of_D_changes_dict = len(D_changes_dict)
+rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
+print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
 
 
 
@@ -780,12 +790,6 @@ while 1:     #this is the loop that endlessly repeats
 
 
 
-
-
-
-
-
-
 """
 original20 = create_top_list(mo_T1, 20)   #match object, desired number of projects in list
 new20 = create_top_list(mo_T2, 20)
@@ -799,9 +803,6 @@ print("the job# in the first item in original20 looks like this: ", original20[0
     # for all non-numerical items, their equivalent in changed20 is identical to new20
     # for all numerical items in that job for new20:
         # changed20 equivalent = new20 number minus original20 number
-
-
-
 
 
 
@@ -831,4 +832,3 @@ print("the job# in the first item in original20 looks like this: ", original20[0
 # print('The example new projects are:\n',exampleNewbies,'\n')
 # send_email(cfg.my_gmail_uname, cfg.my_gmail_pw, cfg.my_work_email,'Admin: new project added',str(exampleNewbies))
 """
-
