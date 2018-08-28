@@ -611,7 +611,8 @@ def email_html_table():
     #     reader = csv.reader(input_file)
     #     data = list(reader)
 
-    df = pd.read_csv("export/D_changes_dict.csv")
+    df = pd.read_excel("export/D_changes_dict.xlsx")
+    df.to_csv("export/D_changes_dict.csv", index=False)  # index=False prevents pandas to write row index
     col_list = list(df.columns.values)
     data = df
     # above line took every col inside csv as list
@@ -830,7 +831,7 @@ excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_di
 len_of_D_changes_dict = len(D_changes_dict)
 rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
 print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
-# email_html_table()    # still bugs to iron out
+email_html_table()    # still bugs to iron out
 
 
 
