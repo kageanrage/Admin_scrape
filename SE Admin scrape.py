@@ -831,10 +831,6 @@ print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has 
 email_html_table()    # still bugs to iron out
 
 
-# TODO: refactor / tidy
-# TODO: add 'data since XXXX' date/time stamp
-# TODO: in export table, rename T1 / T2
-# TODO: add colour/formatting to html table in email
 # TODO: set this up in windows schedule on home PC
 # TODO: add Joel as recipient
 
