@@ -17,8 +17,10 @@ logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - 
 logging.debug('Imported modules')
 logging.debug('Start of program')
 logging.debug('Checking if Laptop or Desktop (and opening relevant local HTML files if using test HTML)')
+print(f'Current cwd = {os.getcwd()}')
 
 cfg = Config()      # create an instance of the Config class, essentially brings private config data into play
+os.chdir(cfg.cwd)
 
 old_site_regex = re.compile(
 '<a href="https://data.studentedge.com.au/admin/survey/details/(.{36})">(.{1,75})<\/a><\/td><td class="clickable">(.{1,70}?)<\/td><td class="clickable">(.{1,10})<\/td><td class="clickable">(.{1,30})<\/td>(.{80,180})201\d<\/td><td class="clickable">(.{1,10})?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="clickable">(\d+)?<\/td><td class="published t-center clickable"><span class="((True)|(False))">((True)|(False))<\/span><\/td><\/tr><tr class="gridrow(_alternate)? selectable-row"><td class="clickable">')  # doesn't cater for abbreviated URL prefix (changed 26-8 on site)
