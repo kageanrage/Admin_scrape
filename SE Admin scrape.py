@@ -8,6 +8,8 @@ import csv
 from tabulate import tabulate
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 import smtplib
 
 import logging
@@ -17,7 +19,7 @@ logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - 
 logging.debug('Imported modules')
 logging.debug('Start of program')
 logging.debug('Checking if Laptop or Desktop (and opening relevant local HTML files if using test HTML)')
-print(f'Current cwd = {os.getcwd()}')
+logging.debug(f'Current cwd = {os.getcwd()}')
 
 cfg = Config()      # create an instance of the Config class, essentially brings private config data into play
 os.chdir(cfg.cwd)
@@ -631,7 +633,56 @@ def email_html_table():
     server.starttls()
     server.login(me, password)
     server.sendmail(me, you, message.as_string())
+    logging.debug('Sent email with html table content')
     server.quit()
+
+
+def email_attachment(file_to_attach):
+    me = cfg.my_gmail_uname
+    password = cfg.my_gmail_pw
+    server = 'smtp.gmail.com:587'
+    you = cfg.my_work_email
+
+    email_sender = cfg.my_gmail_uname
+    email_receiver = cfg.my_work_email
+
+    subject = "Update - live projects"
+
+    msg = MIMEMultipart()
+    msg['From'] = email_sender
+    msg['To'] = email_receiver
+    msg['Subject']= subject
+
+    body = 'Attached shows the project changes since the last run'
+    msg.attach(MIMEText(body, 'plain'))
+
+    filename = file_to_attach # this is a file that is added to our mail
+    attachment = open(filename, 'rb') # for opening file, file is open in read mode
+
+    # A MIME attachment with the content type "application/octet-stream" is a binary file.
+    # Typically, it will be an application or a document that must be opened in an application, such as a spreadsheet or word processor.
+    # If the attachment has a filename extension associated with it, you may be able to tell what kind of file it is
+
+    part = MIMEBase('application', 'octet_stream')
+
+    part.set_payload((attachment).read())
+
+    # Base64 encoding schemes are commonly used when there is a need to encode binary data
+    # that needs be stored and transferred over media that are designed to deal with textual data.
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', "attachment; filename= "+filename)  # add the file to the header
+
+    msg.attach(part) # attach the attachment to the message
+    text = msg.as_string()
+
+    connection = smtplib.SMTP('smtp.gmail.com', 587)
+    connection.starttls()
+    connection.login(email_sender, cfg.my_gmail_pw)
+    connection.sendmail(email_sender, email_receiver, text)
+    logging.debug('Sent email with attachment')
+    connection.quit()
+
+
 
 # test mode variables
 """
@@ -754,9 +805,9 @@ changes_dict_headings_of_interest = [
     'Quota Fulls_T2','Quota Fulls_gap','incidence','incidence_overnight','QFincidence','QFincidence_overnight',
 ]
 
-"""
-excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
-"""
+
+# excel_export_mergedDict(changes_dict, 'export/changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
+
 
 
 ################################################
@@ -775,10 +826,10 @@ imported_dict = old_data_excel_to_dict_importer('export/D_merged.xlsx')
 # create a dic which is only the stripped out fields of interest i.e. stripping back from a merged dict to unmerged
 stripped_dict = create_stripped_dict(imported_dict, strip_map)
 # pprint.pprint(stripped_dict)
-excel_export_dict(stripped_dict, 'export/stripped.xlsx')
-len_of_stripped_dict = len(stripped_dict)
+# excel_export_dict(stripped_dict, 'export/stripped.xlsx')
+# len_of_stripped_dict = len(stripped_dict)
 # print(f'len of stripped_dict is {len_of_stripped_dict}')
-rows_in_stripped_xls = row_counter('export/stripped.xlsx')
+# rows_in_stripped_xls = row_counter('export/stripped.xlsx')
 # print(f'len of stripped_dict is {len_of_stripped_dict} whereas excel file has {rows_in_stripped_xls} rows.')
 
 # 2 download new data, store in dict as D2
@@ -787,11 +838,11 @@ rows_in_stripped_xls = row_counter('export/stripped.xlsx')
 D2_soup = download_soup()     # toggle off for test mode
 mo_D2 = process_soup(D2_soup, 'export/D2_string.txt', new_site_regex)   # parameter: D2_soup or T1_soup for testing, plus string txt filename
 D2_dict = create_masterDict(mo_D2)
-excel_export_dict(D2_dict, 'export/D2.xlsx')
-len_of_mo_D2 = len(mo_D2)
-len_of_D2_dict = len(D2_dict)
-rows_in_D2_xls = row_counter('export/D2.xlsx')
-print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
+# excel_export_dict(D2_dict, 'export/D2.xlsx')
+# len_of_mo_D2 = len(mo_D2)
+# len_of_D2_dict = len(D2_dict)
+# rows_in_D2_xls = row_counter('export/D2.xlsx')
+# print(f'len of mo_D2 is {len_of_mo_D2} D2_dict is {len_of_D2_dict} whereas excel file has {rows_in_D2_xls} rows.')
 
 
 """"
@@ -810,10 +861,10 @@ print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D
 D_merged_dict = create_merged_dict_with_old_data(stripped_dict, T1_map)
 add_new_data(D2_dict, D_merged_dict, T2_map, "T2")
 dynamic_field_adder(D_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict
-excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
-len_of_D_merged_dict = len(D_merged_dict)
-rows_in_D_merged_xls = row_counter('export/D_merged.xlsx')
-print(f'len of D_merged_dict is {len_of_D_merged_dict} whereas excel file has {rows_in_D_merged_xls} rows.')
+# excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+# len_of_D_merged_dict = len(D_merged_dict)
+# rows_in_D_merged_xls = row_counter('export/D_merged.xlsx')
+# print(f'len of D_merged_dict is {len_of_D_merged_dict} whereas excel file has {rows_in_D_merged_xls} rows.')
 
 
 # If Comp, SO or QF gaps > 0, then project has changed. Add it to a 'changed' dictionary, and export that to excel, excluding junk/alias/URL fields
@@ -827,11 +878,11 @@ changes_dict_headings_of_interest = [
 ]
 
 excel_export_mergedDict(D_changes_dict, 'export/D_changes_dict.xlsx', changes_dict_headings_of_interest)  # excel export of changes_dict using columns of interest only
-len_of_D_changes_dict = len(D_changes_dict)
-rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
-print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
-email_html_table()    # still bugs to iron out
-
+# len_of_D_changes_dict = len(D_changes_dict)
+# rows_in_D_changes_xls = row_counter('export/D_changes_dict.xlsx')
+# print(f'len of D_changes_dict is {len_of_D_changes_dict} whereas excel file has {rows_in_D_changes_xls} rows.')
+# email_html_table()    # still bugs to iron out
+email_attachment("export/D_changes_dict.xlsx")
 
 # TODO: set this up in windows schedule on home PC
 # TODO: add Joel as recipient
