@@ -861,7 +861,7 @@ print(f'len of mo_D2_backup is {len_of_mo_D2_backup} D2_backup_dict is {len_of_D
 D_merged_dict = create_merged_dict_with_old_data(stripped_dict, T1_map)
 add_new_data(D2_dict, D_merged_dict, T2_map, "T2")
 dynamic_field_adder(D_merged_dict, "T2")  # add the dynamic fields (gaps, overnight) to merged_dict
-# excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
+excel_export_mergedDict(D_merged_dict, 'export/D_merged.xlsx', merged_dict_headings_2_data_sets) # excel export of merged_dict
 # len_of_D_merged_dict = len(D_merged_dict)
 # rows_in_D_merged_xls = row_counter('export/D_merged.xlsx')
 # print(f'len of D_merged_dict is {len_of_D_merged_dict} whereas excel file has {rows_in_D_merged_xls} rows.')
