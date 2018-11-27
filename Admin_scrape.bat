@@ -1,0 +1,1 @@
+@python.exe "C:\Github local repos\Admin_scrape\SE Admin scrape.py"
